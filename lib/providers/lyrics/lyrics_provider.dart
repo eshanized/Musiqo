@@ -1,44 +1,42 @@
 // ============================================================================
-// Lyrics Provider - State for lyrics
+// Lyrics Provider - Riverpod state for lyrics fetching
 // Author: Eshan Roy <eshanized@proton.me>
 // SPDX-License-Identifier: MIT
 // ============================================================================
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/models/lyrics.dart';
+import '../../data/models/song.dart';
 import '../../services/lyrics/lyrics_service.dart';
 import '../audio/player_provider.dart';
 
-/// Provider for lyrics service
+/// Lyrics service provider
 final lyricsServiceProvider = Provider<LyricsService>((ref) {
   return LyricsService();
 });
 
-/// Provider for current song lyrics
-final currentLyricsProvider = FutureProvider<Lyrics?>((ref) async {
-  final currentSongAsync = ref.watch(currentSongProvider);
-
-  return currentSongAsync.when(
-    data: (song) async {
-      if (song == null) return null;
-      final service = ref.watch(lyricsServiceProvider);
-      return service.fetchLyrics(
-        title: song.title,
-        artist: song.artistName,
-        duration: song.duration,
-      );
-    },
-    loading: () => null,
-    error: (_, __) => null,
+/// Current song lyrics provider
+/// Automatically fetches lyrics when the current song changes
+final currentLyricsProvider = FutureProvider.autoDispose<SongLyrics?>((ref) async {
+  final currentSong = ref.watch(currentSongProvider).value;
+  
+  if (currentSong == null) return null;
+  
+  final lyricsService = ref.read(lyricsServiceProvider);
+  
+  return lyricsService.fetchLyrics(
+    videoId: currentSong.id,
+    title: currentSong.title,
+    artist: currentSong.artistName,
   );
 });
 
-/// Provider for lyrics by song ID
-final lyricsProvider = FutureProvider.family<Lyrics?, String>((
-  ref,
-  songId,
-) async {
-  // Fetch lyrics by song ID from cache or API
-  return null;
+/// Provider to get the currently active lyric line index
+final activeLyricIndexProvider = Provider.autoDispose<int?>((ref) {
+  final lyrics = ref.watch(currentLyricsProvider).value;
+  final position = ref.watch(positionProvider).value ?? Duration.zero;
+  
+  if (lyrics == null || lyrics.isEmpty) return null;
+  
+  return lyrics.getActiveLineIndex(position);
 });

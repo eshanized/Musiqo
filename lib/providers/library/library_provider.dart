@@ -1,5 +1,5 @@
 // ============================================================================
-// Library Provider - State for user library
+// Library Providers - State for history, favorites, playlists
 // Author: Eshan Roy <eshanized@proton.me>
 // SPDX-License-Identifier: MIT
 // ============================================================================
@@ -7,49 +7,89 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/song.dart';
-import '../../data/models/playlist.dart';
-import '../../data/repositories/song_repository.dart';
-import '../../data/repositories/playlist_repository.dart';
+import '../../data/repositories/history_repository.dart';
+import '../../data/repositories/favorites_repository.dart';
 
-/// Provider for song repository
-final songRepositoryProvider = Provider<SongRepository>((ref) {
-  return SongRepository();
+// ============================================================================
+// Repository Providers
+// ============================================================================
+
+final historyRepositoryProvider = Provider<HistoryRepository>((ref) {
+  return HistoryRepository();
 });
 
-/// Provider for playlist repository
-final playlistRepositoryProvider = Provider<PlaylistRepository>((ref) {
-  return PlaylistRepository();
+final favoritesRepositoryProvider = Provider<FavoritesRepository>((ref) {
+  return FavoritesRepository();
 });
 
-/// Provider for liked songs
+// ============================================================================
+// History Providers
+// ============================================================================
+
+/// Recent play history
+final recentHistoryProvider = FutureProvider<List<Song>>((ref) async {
+  final repo = ref.watch(historyRepositoryProvider);
+  return repo.getRecentHistory(limit: 50);
+});
+
+/// Add song to history (call when song starts playing)
+Future<void> addToHistory(WidgetRef ref, Song song) async {
+  final repo = ref.read(historyRepositoryProvider);
+  await repo.addToHistory(song);
+  ref.invalidate(recentHistoryProvider);
+}
+
+// ============================================================================
+// Favorites Providers
+// ============================================================================
+
+/// All liked songs
 final likedSongsProvider = FutureProvider<List<Song>>((ref) async {
-  final repo = ref.watch(songRepositoryProvider);
+  final repo = ref.watch(favoritesRepositoryProvider);
   return repo.getLikedSongs();
 });
 
-/// Provider for recently played
-final recentlyPlayedProvider = FutureProvider<List<Song>>((ref) async {
-  final repo = ref.watch(songRepositoryProvider);
-  return repo.getRecentlyPlayed();
+/// Liked songs count
+final likedCountProvider = FutureProvider<int>((ref) async {
+  final repo = ref.watch(favoritesRepositoryProvider);
+  return repo.getLikedCount();
 });
 
-/// Provider for most played
-final mostPlayedProvider = FutureProvider<List<Song>>((ref) async {
-  final repo = ref.watch(songRepositoryProvider);
-  return repo.getMostPlayed();
+/// Check if specific song is liked
+final isLikedProvider = FutureProvider.family<bool, String>((ref, videoId) async {
+  final repo = ref.watch(favoritesRepositoryProvider);
+  return repo.isLiked(videoId);
 });
 
-/// Provider for local playlists
-final localPlaylistsProvider = FutureProvider<List<Playlist>>((ref) async {
-  final repo = ref.watch(playlistRepositoryProvider);
-  return repo.getLocalPlaylists();
-});
+/// Toggle like status and refresh providers
+Future<bool> toggleLike(WidgetRef ref, Song song) async {
+  final repo = ref.read(favoritesRepositoryProvider);
+  final isNowLiked = await repo.toggleLike(song);
+  
+  // Refresh providers
+  ref.invalidate(likedSongsProvider);
+  ref.invalidate(likedCountProvider);
+  ref.invalidate(isLikedProvider(song.id));
+  
+  return isNowLiked;
+}
 
-/// Check if song is liked
-final isLikedProvider = FutureProvider.family<bool, String>((
-  ref,
-  songId,
-) async {
-  final repo = ref.watch(songRepositoryProvider);
-  return repo.isLiked(songId);
-});
+/// Like a song and refresh providers
+Future<void> likeSong(WidgetRef ref, Song song) async {
+  final repo = ref.read(favoritesRepositoryProvider);
+  await repo.like(song);
+  
+  ref.invalidate(likedSongsProvider);
+  ref.invalidate(likedCountProvider);
+  ref.invalidate(isLikedProvider(song.id));
+}
+
+/// Unlike a song and refresh providers
+Future<void> unlikeSong(WidgetRef ref, String videoId) async {
+  final repo = ref.read(favoritesRepositoryProvider);
+  await repo.unlike(videoId);
+  
+  ref.invalidate(likedSongsProvider);
+  ref.invalidate(likedCountProvider);
+  ref.invalidate(isLikedProvider(videoId));
+}

@@ -1,21 +1,21 @@
 // ============================================================================
-// Library Screen - User's saved music
+// Library Screen - User's saved music with real data
 // Author: Eshan Roy <eshanized@proton.me>
 // SPDX-License-Identifier: MIT
 // ============================================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/everblush_colors.dart';
+import '../../../data/models/song.dart';
+import '../../../providers/audio/player_provider.dart';
+import '../../../providers/library/library_provider.dart';
+import '../../navigation/routes.dart';
+import '../../widgets/images/cached_artwork.dart';
 
 /// Library screen showing user's playlists, downloads, and history.
-/// 
-/// Has tabs for:
-/// - Playlists
-/// - Downloads
-/// - History
-/// - Favorites
 class LibraryScreen extends ConsumerStatefulWidget {
   const LibraryScreen({super.key});
 
@@ -61,10 +61,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
               actions: [
                 IconButton(
                   onPressed: () {
-                    // TODO: Create playlist dialog
+                    context.push(Routes.search);
                   },
                   icon: const Icon(
-                    Icons.add_rounded,
+                    Icons.search_rounded,
                     color: EverblushColors.textPrimary,
                   ),
                 ),
@@ -77,10 +77,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                 indicatorSize: TabBarIndicatorSize.label,
                 dividerColor: Colors.transparent,
                 tabs: const [
+                  Tab(text: 'Favorites'),
+                  Tab(text: 'History'),
                   Tab(text: 'Playlists'),
                   Tab(text: 'Downloads'),
-                  Tab(text: 'History'),
-                  Tab(text: 'Favorites'),
                 ],
               ),
             ),
@@ -89,13 +89,104 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
         body: TabBarView(
           controller: _tabController,
           children: [
+            _buildFavoritesTab(),
+            _buildHistoryTab(),
             _buildPlaylistsTab(),
             _buildDownloadsTab(),
-            _buildHistoryTab(),
-            _buildFavoritesTab(),
           ],
         ),
       ),
+    );
+  }
+
+  /// Favorites tab with real data
+  Widget _buildFavoritesTab() {
+    final likedSongsAsync = ref.watch(likedSongsProvider);
+    
+    return likedSongsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Error: $e')),
+      data: (songs) {
+        if (songs.isEmpty) {
+          return _buildEmptyState(
+            icon: Icons.favorite_border_rounded,
+            title: 'No favorites yet',
+            subtitle: 'Tap the heart icon on songs to save them here',
+          );
+        }
+
+        return Column(
+          children: [
+            // Play all / Shuffle buttons
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        final handler = ref.read(audioHandlerProvider);
+                        handler.playQueue(songs);
+                      },
+                      icon: const Icon(Icons.play_arrow_rounded),
+                      label: const Text('Play All'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () {
+                        final handler = ref.read(audioHandlerProvider);
+                        handler.toggleShuffle();
+                        handler.playQueue(songs);
+                      },
+                      icon: const Icon(Icons.shuffle_rounded),
+                      label: const Text('Shuffle'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Songs list
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.only(bottom: 100),
+                itemCount: songs.length,
+                itemBuilder: (context, index) {
+                  return _buildSongTile(songs[index], songs: songs, index: index);
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// History tab with real data
+  Widget _buildHistoryTab() {
+    final historyAsync = ref.watch(recentHistoryProvider);
+    
+    return historyAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Error: $e')),
+      data: (songs) {
+        if (songs.isEmpty) {
+          return _buildEmptyState(
+            icon: Icons.history_rounded,
+            title: 'No play history',
+            subtitle: 'Songs you play will appear here',
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.only(bottom: 100),
+          itemCount: songs.length,
+          itemBuilder: (context, index) {
+            return _buildSongTile(songs[index], songs: songs, index: index);
+          },
+        );
+      },
     );
   }
 
@@ -107,67 +198,130 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
         // Create playlist button
         _libraryItem(
           icon: Icons.add_rounded,
-          iconBgColor: EverblushColors.surfaceVariant,
-          title: 'Create playlist',
-          onTap: () {},
+          iconBgColor: EverblushColors.primary.withOpacity(0.2),
+          iconColor: EverblushColors.primary,
+          title: 'Create Playlist',
+          onTap: () {
+            // TODO: Show create playlist dialog
+          },
         ),
-        
-        const SizedBox(height: 8),
-        
-        // Liked Songs (always first)
-        _libraryItem(
-          icon: Icons.favorite_rounded,
-          iconBgColor: EverblushColors.error.withValues(alpha: 0.2),
-          iconColor: EverblushColors.error,
-          title: 'Liked Songs',
-          subtitle: '0 songs',
-          onTap: () {},
+        const SizedBox(height: 16),
+        const Text(
+          'Your Playlists',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: EverblushColors.textPrimary,
+          ),
         ),
-        
-        const SizedBox(height: 8),
-        
-        // Placeholder playlists
-        ...List.generate(5, (index) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: _libraryItem(
-              icon: Icons.queue_music_rounded,
-              title: 'My Playlist ${index + 1}',
-              subtitle: '${(index + 1) * 5} songs',
-              onTap: () {},
-            ),
-          );
-        }),
-        
-        const SizedBox(height: 100), // mini player space
+        const SizedBox(height: 12),
+        _buildEmptyState(
+          icon: Icons.queue_music_rounded,
+          title: 'No playlists yet',
+          subtitle: 'Create a playlist to organize your music',
+        ),
       ],
     );
   }
 
   /// Downloads tab
   Widget _buildDownloadsTab() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.download_for_offline_outlined,
-            size: 64,
-            color: EverblushColors.textMuted.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'No downloads yet',
-            style: TextStyle(
-              fontSize: 18,
-              color: EverblushColors.textPrimary,
+    return _buildEmptyState(
+      icon: Icons.download_for_offline_outlined,
+      title: 'No downloads yet',
+      subtitle: 'Download songs for offline listening',
+    );
+  }
+
+  /// Build a song list tile
+  Widget _buildSongTile(Song song, {List<Song>? songs, int? index}) {
+    return ListTile(
+      onTap: () {
+        if (songs != null && index != null) {
+          final handler = ref.read(audioHandlerProvider);
+          handler.playQueue(songs, startIndex: index);
+        } else {
+          final handler = ref.read(audioHandlerProvider);
+          handler.playSong(song);
+        }
+        context.push(Routes.player);
+      },
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: CachedArtwork(
+          url: song.thumbnailUrl,
+          size: 50,
+          borderRadius: 8,
+        ),
+      ),
+      title: Text(
+        song.title,
+        style: const TextStyle(color: EverblushColors.textPrimary),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        song.artistName,
+        style: const TextStyle(
+          fontSize: 12,
+          color: EverblushColors.textMuted,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: PopupMenuButton<String>(
+        icon: const Icon(Icons.more_vert, color: EverblushColors.textMuted),
+        onSelected: (value) async {
+          switch (value) {
+            case 'play_next':
+              final handler = ref.read(audioHandlerProvider);
+              handler.playNext(song);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Playing next')),
+              );
+              break;
+            case 'add_queue':
+              final handler = ref.read(audioHandlerProvider);
+              handler.addToQueue(song);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Added to queue')),
+              );
+              break;
+            case 'toggle_like':
+              await toggleLike(ref, song);
+              break;
+          }
+        },
+        itemBuilder: (context) => [
+          const PopupMenuItem(
+            value: 'play_next',
+            child: Row(
+              children: [
+                Icon(Icons.queue_play_next_rounded, size: 20),
+                SizedBox(width: 12),
+                Text('Play Next'),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Songs you download will appear here',
-            style: TextStyle(
-              color: EverblushColors.textMuted,
+          const PopupMenuItem(
+            value: 'add_queue',
+            child: Row(
+              children: [
+                Icon(Icons.playlist_add_rounded, size: 20),
+                SizedBox(width: 12),
+                Text('Add to Queue'),
+              ],
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'toggle_like',
+            child: Row(
+              children: [
+                Icon(Icons.favorite_border_rounded, size: 20),
+                SizedBox(width: 12),
+                Text('Toggle Like'),
+              ],
             ),
           ),
         ],
@@ -175,75 +329,39 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     );
   }
 
-  /// History tab
-  Widget _buildHistoryTab() {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: 20,
-      itemBuilder: (context, index) {
-        return ListTile(
-          leading: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: EverblushColors.surfaceVariant,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.music_note_rounded,
-              color: EverblushColors.textMuted,
-            ),
-          ),
-          title: Text(
-            'Song ${index + 1}',
-            style: const TextStyle(color: EverblushColors.textPrimary),
-          ),
-          subtitle: Text(
-            'Artist Name • ${index + 1} days ago',
-            style: const TextStyle(
-              fontSize: 12,
-              color: EverblushColors.textMuted,
-            ),
-          ),
-          trailing: IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.more_vert,
-              color: EverblushColors.textMuted,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Favorites tab
-  Widget _buildFavoritesTab() {
+  /// Empty state widget
+  Widget _buildEmptyState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.favorite_border_rounded,
-            size: 64,
-            color: EverblushColors.textMuted.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'No favorites yet',
-            style: TextStyle(
-              fontSize: 18,
-              color: EverblushColors.textPrimary,
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 64,
+              color: EverblushColors.textMuted.withOpacity(0.5),
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Tap the heart icon to save songs',
-            style: TextStyle(
-              color: EverblushColors.textMuted,
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                color: EverblushColors.textPrimary,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: const TextStyle(color: EverblushColors.textMuted),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

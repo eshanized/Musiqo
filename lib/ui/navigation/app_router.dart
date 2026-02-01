@@ -17,6 +17,8 @@ import '../screens/explore/explore_screen.dart';
 import '../screens/library/library_screen.dart';
 import '../screens/search/search_screen.dart';
 import '../screens/player/player_screen.dart';
+import '../screens/queue/queue_screen.dart';
+import '../screens/lyrics/lyrics_screen.dart';
 import '../screens/artist/artist_screen.dart';
 import '../screens/album/album_screen.dart';
 import '../screens/playlist/playlist_screen.dart';
@@ -149,6 +151,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => _slideUpTransition(
           state,
           const PlayerScreen(),
+        ),
+      ),
+
+      // Queue screen
+      GoRoute(
+        path: Routes.queue,
+        name: 'queue',
+        pageBuilder: (context, state) => _slideUpTransition(
+          state,
+          const QueueScreen(),
+        ),
+      ),
+
+      // Lyrics screen
+      GoRoute(
+        path: Routes.lyrics,
+        name: 'lyrics',
+        pageBuilder: (context, state) => _slideUpTransition(
+          state,
+          const LyricsScreen(),
         ),
       ),
 
