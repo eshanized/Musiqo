@@ -18,6 +18,7 @@ import 'package:rxdart/rxdart.dart';
 import '../../data/models/song.dart';
 import '../../core/utils/logger.dart';
 import '../innertube/youtube_facade.dart';
+import 'queue_persistence_service.dart';
 
 /// Repeat mode for playback
 enum RepeatMode {
@@ -39,6 +40,14 @@ class MusiqoAudioHandler extends BaseAudioHandler with SeekHandler {
   // Playback modes
   bool _shuffleEnabled = false;
   RepeatMode _repeatMode = RepeatMode.off;
+
+  // Queue persistence
+  final QueuePersistenceService _persistence = QueuePersistenceService();
+  Timer? _saveDebounceTimer;
+
+  // Automix (radio) mode - continue playing related songs
+  bool _automixEnabled = true;
+  bool _isLoadingAutomix = false;
 
   // State streams
   final _shuffleSubject = BehaviorSubject<bool>.seeded(false);
@@ -98,6 +107,9 @@ class MusiqoAudioHandler extends BaseAudioHandler with SeekHandler {
         // Just go to next if available
         if (_currentIndex < _queue.length - 1) {
           await skipToNext();
+        } else if (_automixEnabled) {
+          // Try to load more songs via automix
+          await _loadAutomixSongs();
         } else {
           // Stop at end of queue
           await stop();
@@ -105,6 +117,56 @@ class MusiqoAudioHandler extends BaseAudioHandler with SeekHandler {
         break;
     }
   }
+
+  /// Load related songs for automix/radio mode
+  Future<void> _loadAutomixSongs() async {
+    if (_isLoadingAutomix || _queue.isEmpty) return;
+    
+    final currentSong = _currentSongSubject.value;
+    if (currentSong == null) return;
+
+    _isLoadingAutomix = true;
+    Log.audio('Loading automix songs for: ${currentSong.title}');
+
+    try {
+      final related = await _youtube.getRelated(currentSong.id);
+      if (related.isNotEmpty) {
+        // Add related songs to queue (filter out songs already in queue)
+        final existingIds = _queue.map((s) => s.id).toSet();
+        final newSongs = related.where((s) => !existingIds.contains(s.id)).take(5).toList();
+        
+        if (newSongs.isNotEmpty) {
+          for (final song in newSongs) {
+            _queue.add(song);
+            _originalQueue.add(song);
+          }
+          _updateQueueState();
+          Log.audio('Added ${newSongs.length} automix songs');
+          
+          // Continue playing
+          await skipToNext();
+        } else {
+          await stop();
+        }
+      } else {
+        await stop();
+      }
+    } catch (e) {
+      Log.error('Automix failed', error: e, tag: 'Automix');
+      await stop();
+    } finally {
+      _isLoadingAutomix = false;
+    }
+  }
+
+  /// Enable/disable automix mode
+  void setAutomixEnabled(bool enabled) {
+    _automixEnabled = enabled;
+    Log.audio('Automix ${enabled ? "enabled" : "disabled"}');
+  }
+
+  /// Get automix state
+  bool get isAutomixEnabled => _automixEnabled;
 
   // ============================================
   // Playback Control
@@ -340,6 +402,17 @@ class MusiqoAudioHandler extends BaseAudioHandler with SeekHandler {
     } else {
       _currentSongSubject.add(null);
     }
+    
+    // Debounced save to avoid excessive disk writes
+    _scheduleQueueSave();
+  }
+
+  /// Schedule a debounced queue save
+  void _scheduleQueueSave() {
+    _saveDebounceTimer?.cancel();
+    _saveDebounceTimer = Timer(const Duration(seconds: 2), () {
+      saveQueueState();
+    });
   }
 
   /// Broadcast playback state to system
@@ -488,11 +561,89 @@ class MusiqoAudioHandler extends BaseAudioHandler with SeekHandler {
 
   /// Dispose resources
   Future<void> dispose() async {
+    _saveDebounceTimer?.cancel();
+    // Save queue state before disposing
+    await saveQueueState();
     await _player.dispose();
     await _shuffleSubject.close();
     await _repeatModeSubject.close();
     await _queueSubject.close();
     await _currentSongSubject.close();
     await _currentIndexSubject.close();
+  }
+
+  // ============================================
+  // Queue Persistence
+  // ============================================
+
+  /// Save current queue state to disk
+  Future<void> saveQueueState() async {
+    if (_queue.isEmpty) {
+      await _persistence.clearQueueState();
+      return;
+    }
+
+    final state = QueueState(
+      queue: List.from(_queue),
+      currentIndex: _currentIndex,
+      shuffleEnabled: _shuffleEnabled,
+      repeatMode: _repeatMode,
+      position: _player.position,
+    );
+
+    await _persistence.saveQueueState(state);
+  }
+
+  /// Restore queue state from disk
+  /// Call this after audio service is initialized
+  Future<void> restoreQueueState({bool autoPlay = false}) async {
+    final state = await _persistence.loadQueueState();
+    if (state == null || state.queue.isEmpty) return;
+
+    _queue.clear();
+    _queue.addAll(state.queue);
+    _originalQueue.clear();
+    _originalQueue.addAll(state.queue);
+    _currentIndex = state.currentIndex.clamp(0, _queue.length - 1);
+    _shuffleEnabled = state.shuffleEnabled;
+    _repeatMode = state.repeatMode;
+
+    _shuffleSubject.add(_shuffleEnabled);
+    _repeatModeSubject.add(_repeatMode);
+    _updateQueueState();
+
+    if (_currentIndex >= 0 && _currentIndex < _queue.length) {
+      final song = _queue[_currentIndex];
+      Log.audio('Restoring queue: ${song.title} at index $_currentIndex');
+      
+      // Load the song but don't auto-play by default
+      try {
+        final mediaItemValue = MediaItem(
+          id: song.id,
+          title: song.title,
+          artist: song.artistName,
+          artUri: song.thumbnailUrl != null ? Uri.parse(song.thumbnailUrl!) : null,
+          duration: song.duration,
+        );
+        mediaItem.add(mediaItemValue);
+
+        final songDetails = await _youtube.getSongDetails(song.id);
+        if (songDetails?.streamUrl != null) {
+          await _player.setUrl(songDetails!.streamUrl!);
+          
+          // Seek to saved position if available
+          if (state.position != null && state.position!.inSeconds > 0) {
+            await seek(state.position!);
+          }
+          
+          if (autoPlay) {
+            await play();
+          }
+        }
+        _broadcastState();
+      } catch (e) {
+        Log.error('Failed to restore queue', error: e);
+      }
+    }
   }
 }

@@ -14,6 +14,9 @@ import '../../core/utils/logger.dart';
 import 'innertube_client.dart';
 import 'parsers/search_parser.dart';
 import 'parsers/song_parser.dart';
+import 'pages/album_page.dart';
+import 'pages/artist_page.dart';
+import 'pages/playlist_page.dart';
 
 /// High-level YouTube Music API.
 ///
@@ -97,6 +100,64 @@ class YouTubeFacade {
     } catch (e) {
       Log.error('Failed to get home page', error: e);
       return const HomePageData();
+    }
+  }
+
+  // ============================================
+  // Page Endpoints (Album, Artist, Playlist)
+  // ============================================
+
+  /// Get album page with details and tracks
+  Future<AlbumPage?> getAlbum(String albumId) async {
+    try {
+      Log.info('Getting album: $albumId', tag: 'YouTubeFacade');
+      final response = await _client.browse(albumId);
+      return AlbumPage.fromBrowseResponse(albumId, response);
+    } catch (e) {
+      Log.error('Failed to get album', error: e);
+      return null;
+    }
+  }
+
+  /// Get artist page with top songs, albums, etc.
+  Future<ArtistPage?> getArtist(String artistId) async {
+    try {
+      Log.info('Getting artist: $artistId', tag: 'YouTubeFacade');
+      final response = await _client.browse(artistId);
+      return ArtistPage.fromBrowseResponse(artistId, response);
+    } catch (e) {
+      Log.error('Failed to get artist', error: e);
+      return null;
+    }
+  }
+
+  /// Get playlist page with tracks
+  Future<PlaylistPage?> getPlaylist(String playlistId) async {
+    try {
+      Log.info('Getting playlist: $playlistId', tag: 'YouTubeFacade');
+      // Playlist IDs need VL prefix for browse
+      final browseId = playlistId.startsWith('VL') ? playlistId : 'VL$playlistId';
+      final response = await _client.browse(browseId);
+      return PlaylistPage.fromBrowseResponse(playlistId, response);
+    } catch (e) {
+      Log.error('Failed to get playlist', error: e);
+      return null;
+    }
+  }
+
+  /// Get radio/automix songs for a song
+  Future<List<Song>> getRadio(String videoId) async {
+    try {
+      Log.info('Getting radio: $videoId', tag: 'YouTubeFacade');
+      // The 'next' endpoint with a playlist prefix gives radio songs
+      final response = await _client.next(
+        videoId: videoId,
+        playlistId: 'RDAMVM$videoId', // Radio playlist format
+      );
+      return _songParser.parseRelated(response);
+    } catch (e) {
+      Log.error('Failed to get radio', error: e);
+      return [];
     }
   }
 

@@ -15,6 +15,7 @@ import 'collections/lyrics_entity.dart';
 import 'collections/history_entity.dart';
 import 'collections/download_entity.dart';
 import 'collections/search_history_entity.dart';
+import 'collections/play_count_entity.dart';
 
 /// Database service for initializing and accessing Isar.
 class DatabaseService {
@@ -46,6 +47,7 @@ class DatabaseService {
         HistoryEntitySchema,
         DownloadEntitySchema,
         SearchHistoryEntitySchema,
+        PlayCountEntitySchema,
       ],
       directory: dir.path,
       name: 'musiqo',
