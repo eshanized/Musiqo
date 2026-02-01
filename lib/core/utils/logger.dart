@@ -72,6 +72,8 @@ class Log {
     final prefix = tag != null ? '[$tag]' : '';
     final fullMessage = '$emoji $prefix $message';
     
+    // ignore: avoid_print
+    print(fullMessage);  // Show in terminal
     dev.log(fullMessage);
   }
 }

@@ -7,6 +7,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/innertube/youtube_facade.dart';
+import '../../core/utils/logger.dart';
 
 /// Provider for the YouTube facade
 ///
@@ -19,5 +20,17 @@ final youtubeProvider = Provider<YouTubeFacade>((ref) {
 /// Provider for home page data
 final homePageProvider = FutureProvider<HomePageData>((ref) async {
   final youtube = ref.watch(youtubeProvider);
-  return youtube.getHomePage();
+  Log.info('Fetching home page data...', tag: 'HomeProvider');
+  try {
+    final data = await youtube.getHomePage();
+    Log.info('Home page loaded: ${data.sections.length} sections', tag: 'HomeProvider');
+    for (final section in data.sections) {
+      Log.info('  Section: ${section.title} - ${section.items.length} items', tag: 'HomeProvider');
+    }
+    return data;
+  } catch (e, stack) {
+    Log.error('Failed to load home page', error: e, tag: 'HomeProvider');
+    Log.error('Stack: $stack', tag: 'HomeProvider');
+    rethrow;
+  }
 });

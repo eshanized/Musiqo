@@ -9,7 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/everblush_colors.dart';
+import '../../../core/utils/logger.dart';
 import '../../../data/models/song.dart';
+import '../../../data/models/playlist.dart';
 import '../../../providers/data/youtube_provider.dart';
 import '../../../providers/audio/player_provider.dart';
 import '../../../services/innertube/youtube_facade.dart';
@@ -185,15 +187,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildCarouselItem(dynamic item) {
+    Log.debug('Building item: ${item.runtimeType}', tag: 'HomeScreen');
     if (item is Song) {
       return _buildSongCard(item);
     } else if (item is Album) {
       return _buildAlbumCard(item);
     } else if (item is Artist) {
       return _buildArtistCard(item);
+    } else if (item is Playlist) {
+      return _buildPlaylistCard(item);
     } else {
-      return CarouselCard(width: 140, title: 'Unknown', subtitle: '');
+      Log.warning('Unknown item type: ${item.runtimeType}', tag: 'HomeScreen');
+      return CarouselCard(width: 140, title: 'Unknown', subtitle: item.runtimeType.toString());
     }
+  }
+
+  Widget _buildPlaylistCard(Playlist playlist) {
+    return GestureDetector(
+      onTap: () => context.push('${Routes.playlist}/${playlist.id}'),
+      child: SizedBox(
+        width: 140,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CachedArtwork(
+                url: playlist.thumbnailUrl,
+                size: 140,
+                borderRadius: 8,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              playlist.name,
+              style: const TextStyle(
+                color: EverblushColors.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildSongCard(Song song) {

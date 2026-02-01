@@ -88,8 +88,12 @@ class YouTubeFacade {
   /// Get home page content
   Future<HomePageData> getHomePage() async {
     try {
+      Log.info('Calling browse(FEmusic_home)...', tag: 'YouTubeFacade');
       final response = await _client.browse('FEmusic_home');
-      return _parseHomePage(response);
+      Log.info('Browse response keys: ${response.keys.toList()}', tag: 'YouTubeFacade');
+      final result = _parseHomePage(response);
+      Log.info('Parsed ${result.sections.length} sections', tag: 'YouTubeFacade');
+      return result;
     } catch (e) {
       Log.error('Failed to get home page', error: e);
       return const HomePageData();
