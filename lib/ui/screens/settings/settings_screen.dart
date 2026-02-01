@@ -11,7 +11,9 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/everblush_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../providers/auth/auth_provider.dart';
+import '../../../providers/auth/auth_provider.dart';
 import '../../../services/auth/google_auth_service.dart';
+import '../../../providers/data/backup_provider.dart';
 import '../../navigation/routes.dart';
 
 /// Settings screen with app configuration options.
@@ -23,7 +25,7 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isLoggedInAsync = ref.watch(isLoggedInProvider);
+    final isLoggedInAsync = ref.watch(authProvider);
     final accountInfoAsync = ref.watch(accountInfoProvider);
 
     return Scaffold(
@@ -78,6 +80,18 @@ class SettingsScreen extends ConsumerWidget {
           
           const Divider(color: EverblushColors.outline, height: 32),
           
+          // Integrations
+          _sectionHeader('Integrations'),
+          _switchTile(
+            icon: Icons.discord,
+            title: 'Discord Rich Presence',
+            subtitle: 'Show what you are listening to',
+            value: true, // TODO: Use real provider
+            onChanged: (value) {},
+          ),
+          
+          const Divider(color: EverblushColors.outline, height: 32),
+          
           // Downloads section
           _sectionHeader('Downloads'),
           _settingsTile(
@@ -115,6 +129,48 @@ class SettingsScreen extends ConsumerWidget {
             title: 'Clear Search History',
             subtitle: 'Remove all recent searches',
             onTap: () {},
+          ),
+          _settingsTile(
+            icon: Icons.upload_file_outlined,
+            title: 'Export Data',
+            subtitle: 'Backup history and playlists',
+            onTap: () async {
+              try {
+                await ref.read(backupServiceProvider).exportData();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Backup exported successfully')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Export failed: $e')),
+                  );
+                }
+              }
+            },
+          ),
+           _settingsTile(
+            icon: Icons.file_download_outlined,
+            title: 'Import Data',
+            subtitle: 'Restore from backup',
+            onTap: () async {
+               try {
+                await ref.read(backupServiceProvider).importData();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Data restored successfully')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Import failed: $e')),
+                  );
+                }
+              }
+            },
           ),
           
           const Divider(color: EverblushColors.outline, height: 32),
@@ -313,7 +369,7 @@ class SettingsScreen extends ConsumerWidget {
           );
 
           if (confirmed == true) {
-            await ref.read(authNotifierProvider.notifier).logout();
+            await ref.read(authProvider.notifier).logout();
           }
         },
         child: const Text(

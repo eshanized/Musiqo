@@ -1,109 +1,89 @@
 // ============================================================================
-// Auth Provider - Riverpod state for optional Google authentication
+// Auth Provider - State management for user session
 // Author: Eshan Roy <eshanized@proton.me>
 // SPDX-License-Identifier: MIT
 // ============================================================================
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../services/auth/google_auth_service.dart';
+import '../../providers/data/youtube_provider.dart';
 
-/// Provider for the auth service
-final authServiceProvider = Provider<GoogleAuthService>((ref) {
+final googleAuthServiceProvider = Provider<GoogleAuthService>((ref) {
   return GoogleAuthService();
 });
 
-/// Provider to check if user is logged in
-final isLoggedInProvider = FutureProvider<bool>((ref) async {
-  final authService = ref.watch(authServiceProvider);
-  return authService.isLoggedIn();
+class AccountInfo {
+  final String name;
+  final String email;
+  final String? thumbnailUrl;
+  
+  AccountInfo({required this.name, required this.email, this.thumbnailUrl});
+}
+
+final accountInfoProvider = StateProvider<AsyncValue<AccountInfo?>>((ref) {
+  return const AsyncValue.data(null);
 });
 
-/// Provider for account info (null if not logged in)
-final accountInfoProvider = FutureProvider<AccountInfo?>((ref) async {
-  final authService = ref.watch(authServiceProvider);
-  final isLoggedIn = await authService.isLoggedIn();
-  if (!isLoggedIn) return null;
-  return authService.getAccountInfo();
+final authProvider = StateNotifierProvider<AuthNotifier, AsyncValue<bool>>((ref) {
+  final service = ref.watch(googleAuthServiceProvider);
+  return AuthNotifier(service, ref);
 });
 
-/// Provider for cookie (used by InnerTube client)
-final authCookieProvider = FutureProvider<String?>((ref) async {
-  final authService = ref.watch(authServiceProvider);
-  return authService.getCookie();
-});
-
-/// Provider for visitor data
-final visitorDataProvider = FutureProvider<String?>((ref) async {
-  final authService = ref.watch(authServiceProvider);
-  return authService.getVisitorData();
-});
-
-/// Provider for data sync ID
-final dataSyncIdProvider = FutureProvider<String?>((ref) async {
-  final authService = ref.watch(authServiceProvider);
-  return authService.getDataSyncId();
-});
-
-/// Notifier for auth state changes
 class AuthNotifier extends StateNotifier<AsyncValue<bool>> {
-  final GoogleAuthService _authService;
+  final GoogleAuthService _service;
   final Ref _ref;
 
-  AuthNotifier(this._authService, this._ref) : super(const AsyncValue.loading()) {
+  AuthNotifier(this._service, this._ref) : super(const AsyncValue.loading()) {
     _init();
   }
 
   Future<void> _init() async {
-    final isLoggedIn = await _authService.isLoggedIn();
-    state = AsyncValue.data(isLoggedIn);
+    try {
+      await _service.init();
+      if (_service.isLoggedIn) {
+        _updateClientAuth();
+        // TODO: Fetch real account info
+        _ref.read(accountInfoProvider.notifier).state = const AsyncValue.data(
+          AccountInfo(name: 'YouTube User', email: 'Signed in'),
+        );
+      } else {
+         _ref.read(accountInfoProvider.notifier).state = const AsyncValue.data(null);
+      }
+      state = AsyncValue.data(_service.isLoggedIn);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
   }
 
-  /// Save login data and update state
-  Future<void> login({
-    required String cookie,
-    required String visitorData,
-    required String dataSyncId,
-    required String accountName,
-    required String accountEmail,
-    String? accountThumbnail,
-  }) async {
-    await _authService.saveAuthData(
-      cookie: cookie,
-      visitorData: visitorData,
-      dataSyncId: dataSyncId,
-      accountName: accountName,
-      accountEmail: accountEmail,
-      accountThumbnail: accountThumbnail,
-    );
-
-    // Refresh providers
-    _ref.invalidate(isLoggedInProvider);
-    _ref.invalidate(accountInfoProvider);
-    _ref.invalidate(authCookieProvider);
-    _ref.invalidate(visitorDataProvider);
-    _ref.invalidate(dataSyncIdProvider);
-
-    state = const AsyncValue.data(true);
+  void _updateClientAuth() {
+     final client = _ref.read(innerTubeClientProvider);
+     client.setAuth(_service.cookies);
   }
 
-  /// Logout and clear all auth data
+  Future<void> login(String rawCookies, {String? visitorData, String? dataSyncId}) async {
+    state = const AsyncValue.loading();
+    try {
+      await _service.login(rawCookies, visitorData: visitorData, dataSyncId: dataSyncId);
+      _updateClientAuth();
+      _ref.read(accountInfoProvider.notifier).state = const AsyncValue.data(
+          AccountInfo(name: 'YouTube User', email: 'Signed in'),
+      );
+      state = const AsyncValue.data(true);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
   Future<void> logout() async {
-    await _authService.logout();
-
-    // Refresh providers
-    _ref.invalidate(isLoggedInProvider);
-    _ref.invalidate(accountInfoProvider);
-    _ref.invalidate(authCookieProvider);
-    _ref.invalidate(visitorDataProvider);
-    _ref.invalidate(dataSyncIdProvider);
-
-    state = const AsyncValue.data(false);
+    state = const AsyncValue.loading();
+    try {
+      await _service.logout();
+      final client = _ref.read(innerTubeClientProvider);
+      client.clearAuth();
+      _ref.read(accountInfoProvider.notifier).state = const AsyncValue.data(null);
+      state = const AsyncValue.data(false);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
   }
 }
-
-/// Provider for auth state notifier
-final authNotifierProvider = StateNotifierProvider<AuthNotifier, AsyncValue<bool>>((ref) {
-  final authService = ref.watch(authServiceProvider);
-  return AuthNotifier(authService, ref);
-});

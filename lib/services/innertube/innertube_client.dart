@@ -8,6 +8,8 @@
 // ============================================================================
 
 import 'dart:convert';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 
 import '../../core/constants/api_constants.dart';
@@ -281,4 +283,32 @@ class InnerTubeClient {
   void setVisitorData(String visitorData) {
     _visitorData = visitorData;
   }
+
+  /// Update authentication (cookies and SAPISID) for WEB_REMIX
+  void setAuth(Map<String, String> cookies) {
+    _dioWebRemix.options.headers['Cookie'] = cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
+    
+    if (cookies.containsKey('SAPISID')) {
+      final sapisid = cookies['SAPISID']!;
+      _dioWebRemix.options.headers['Authorization'] = _generateAuthHeader(sapisid);
+    } else {
+      _dioWebRemix.options.headers.remove('Authorization');
+    }
+  }
+
+  /// Clear authentication
+  void clearAuth() {
+    _dioWebRemix.options.headers.remove('Cookie');
+    _dioWebRemix.options.headers.remove('Authorization');
+  }
+
+  /// Generate SAPISIDHASH Authorization header
+  String _generateAuthHeader(String sapisid) {
+    final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final origin = 'https://music.youtube.com';
+    final strToHash = '$timestamp $sapisid $origin';
+    final hash = sha1.convert(utf8.encode(strToHash)).toString();
+    return 'SAPISIDHASH ${timestamp}_$hash';
+  }
 }
+
