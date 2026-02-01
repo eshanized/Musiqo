@@ -24,6 +24,7 @@ import '../screens/album/album_screen.dart';
 import '../screens/playlist/playlist_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/auth/login_screen.dart';
+import '../screens/downloads/downloads_screen.dart';
 import '../widgets/core/app_scaffold.dart';
 
 /// The router provider - creates and provides our navigation configuration
@@ -136,6 +137,15 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => _slideTransition(
               state,
               const SettingsScreen(),
+            ),
+          ),
+          
+          GoRoute(
+            path: Routes.downloads,
+            name: 'downloads',
+            pageBuilder: (context, state) => _slideTransition(
+              state,
+              const DownloadsScreen(),
             ),
           ),
         ],

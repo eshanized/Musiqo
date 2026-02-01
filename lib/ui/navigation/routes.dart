@@ -16,6 +16,7 @@ class Routes {
   static const String home = '/';
   static const String explore = '/explore';
   static const String library = '/library';
+  static const String downloads = '/downloads';
 
   // Search
   static const String search = '/search';

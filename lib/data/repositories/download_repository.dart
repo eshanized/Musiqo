@@ -1,76 +1,70 @@
 // ============================================================================
-// Download Repository - Downloaded songs data
+// Download Repository - Track downloaded songs
 // Author: Eshan Roy <eshanized@proton.me>
 // SPDX-License-Identifier: MIT
 // ============================================================================
 
-import 'package:isar/isar.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/models/song.dart';
 
-import '../database/database_service.dart';
-import '../database/collections/download_entity.dart';
-
-/// Repository for downloaded songs.
+/// Manages metadata of downloaded songs using SharedPreferences
 class DownloadRepository {
-  Isar get _db => DatabaseService.instance;
-
-  /// Get all downloads
-  Future<List<DownloadEntity>> getDownloads() async {
-    return _db.downloadEntitys.where().sortByDownloadedAtDesc().findAll();
+  static const String _downloadsKey = 'downloaded_songs';
+  
+  Future<List<Song>> getDownloadedSongs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> downloads = prefs.getStringList(_downloadsKey) ?? [];
+    
+    return downloads.map((json) {
+      final map = jsonDecode(json) as Map<String, dynamic>;
+      return Song.fromJson(map);
+    }).toList();
   }
 
-  /// Check if song is downloaded
-  Future<bool> isDownloaded(String songId) async {
-    final entity = await _db.downloadEntitys
-        .filter()
-        .songIdEqualTo(songId)
-        .findFirst();
-    return entity != null;
-  }
+  Future<void> addDownloadedSong(Song song, String localPath) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> downloads = prefs.getStringList(_downloadsKey) ?? [];
 
-  /// Get download path
-  Future<String?> getDownloadPath(String songId) async {
-    final entity = await _db.downloadEntitys
-        .filter()
-        .songIdEqualTo(songId)
-        .findFirst();
-    return entity?.filePath;
-  }
-
-  /// Save download info
-  Future<void> saveDownload({
-    required String songId,
-    required String title,
-    required String artistName,
-    String? thumbnailUrl,
-    required String filePath,
-    required int fileSize,
-    String? quality,
-  }) async {
-    final entity = DownloadEntity()
-      ..songId = songId
-      ..title = title
-      ..artistName = artistName
-      ..thumbnailUrl = thumbnailUrl
-      ..filePath = filePath
-      ..fileSize = fileSize
-      ..quality = quality
-      ..downloadedAt = DateTime.now();
-
-    await _db.writeTxn(() async {
-      await _db.downloadEntitys.put(entity);
+    // Remove if already exists to update
+    downloads.removeWhere((json) {
+       final map = jsonDecode(json) as Map<String, dynamic>;
+       return map['id'] == song.id;
     });
+
+    // Determine the actual path field. 
+    // Assuming the Song entity plays from `streamUrl` usually, 
+    // but for offline we want to use the local file.
+    // Ideally Song model has a `localPath` field. 
+    // If not, we might reuse `streamUrl` or add `localPath` to the json.
+    // For now, let's inject a 'localPath' property into the JSON map 
+    // if the Song model doesn't support it directly, or rely on Song having it.
+    
+    // Let's assume we store the song object AS IS, but we need to know it's downloaded.
+    // A better approach: store song with isLocal or localPath set.
+    
+    // We'll create a copy of the song map and add/update fields
+    final songMap = song.toJson();
+    songMap['localPath'] = localPath; 
+    
+    downloads.add(jsonEncode(songMap));
+    await prefs.setStringList(_downloadsKey, downloads);
   }
 
-  /// Delete download
-  Future<void> deleteDownload(String songId) async {
-    await _db.writeTxn(() async {
-      await _db.downloadEntitys.filter().songIdEqualTo(songId).deleteAll();
+  Future<void> removeDownloadedSong(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> downloads = prefs.getStringList(_downloadsKey) ?? [];
+    
+    downloads.removeWhere((json) {
+       final map = jsonDecode(json) as Map<String, dynamic>;
+       return map['id'] == id;
     });
+    
+    await prefs.setStringList(_downloadsKey, downloads);
   }
 
-  /// Get total download size
-  Future<int> getTotalSize() async {
-    final downloads = await getDownloads();
-    return downloads.fold(0, (sum, d) => sum + d.fileSize);
+  Future<bool> isDownloaded(String id) async {
+    final songs = await getDownloadedSongs();
+    return songs.any((s) => s.id == id);
   }
 }

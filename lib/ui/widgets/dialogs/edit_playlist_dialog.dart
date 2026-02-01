@@ -1,5 +1,5 @@
 // ============================================================================
-// Create Playlist Dialog - UI for creating new playlists
+// Edit Playlist Dialog - UI for renaming/editing playlists
 // Author: Eshan Roy <eshanized@proton.me>
 // SPDX-License-Identifier: MIT
 // ============================================================================
@@ -8,27 +8,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/everblush_colors.dart';
+import '../../../data/models/playlist.dart';
 import '../../../providers/playlist/playlist_provider.dart';
 
-/// Dialog for creating a new playlist
-class CreatePlaylistDialog extends ConsumerStatefulWidget {
-  const CreatePlaylistDialog({super.key});
+/// Dialog for editing an existing playlist
+class EditPlaylistDialog extends ConsumerStatefulWidget {
+  final Playlist playlist;
 
-  static Future<void> show(BuildContext context) {
+  const EditPlaylistDialog({super.key, required this.playlist});
+
+  static Future<void> show(BuildContext context, Playlist playlist) {
     return showDialog(
       context: context,
-      builder: (context) => const CreatePlaylistDialog(),
+      builder: (context) => EditPlaylistDialog(playlist: playlist),
     );
   }
 
   @override
-  ConsumerState<CreatePlaylistDialog> createState() => _CreatePlaylistDialogState();
+  ConsumerState<EditPlaylistDialog> createState() => _EditPlaylistDialogState();
 }
 
-class _CreatePlaylistDialogState extends ConsumerState<CreatePlaylistDialog> {
-  final _nameController = TextEditingController();
-  final _descController = TextEditingController();
+class _EditPlaylistDialogState extends ConsumerState<EditPlaylistDialog> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _descController;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.playlist.name);
+    _descController = TextEditingController(text: widget.playlist.description);
+  }
 
   @override
   void dispose() {
@@ -37,24 +47,25 @@ class _CreatePlaylistDialogState extends ConsumerState<CreatePlaylistDialog> {
     super.dispose();
   }
 
-  Future<void> _create() async {
+  Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
 
     setState(() => _isLoading = true);
     
     try {
-      await ref.read(playlistActionsProvider.notifier).createPlaylist(
-        name,
-        description: _descController.text.trim().isNotEmpty 
-            ? _descController.text.trim() 
-            : null,
+      final updatedPlaylist = widget.playlist.copyWith(
+        name: name,
+        description: _descController.text.trim(),
       );
+      
+      await ref.read(playlistActionsProvider.notifier).updatePlaylist(updatedPlaylist);
+      
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create playlist: $e')),
+          SnackBar(content: Text('Failed to update playlist: $e')),
         );
       }
     } finally {
@@ -67,7 +78,7 @@ class _CreatePlaylistDialogState extends ConsumerState<CreatePlaylistDialog> {
     return AlertDialog(
       backgroundColor: EverblushColors.surface,
       title: const Text(
-        'Create Playlist',
+        'Edit Playlist',
         style: TextStyle(color: EverblushColors.textPrimary),
       ),
       content: Column(
@@ -78,8 +89,8 @@ class _CreatePlaylistDialogState extends ConsumerState<CreatePlaylistDialog> {
             autofocus: true,
             style: const TextStyle(color: EverblushColors.textPrimary),
             decoration: InputDecoration(
-              hintText: 'Playlist name',
-              hintStyle: TextStyle(color: EverblushColors.textMuted),
+              labelText: 'Name',
+              labelStyle: TextStyle(color: EverblushColors.textMuted),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: EverblushColors.surfaceVariant),
                 borderRadius: BorderRadius.circular(8),
@@ -96,8 +107,8 @@ class _CreatePlaylistDialogState extends ConsumerState<CreatePlaylistDialog> {
             style: const TextStyle(color: EverblushColors.textPrimary),
             maxLines: 2,
             decoration: InputDecoration(
-              hintText: 'Description (optional)',
-              hintStyle: TextStyle(color: EverblushColors.textMuted),
+              labelText: 'Description',
+              labelStyle: TextStyle(color: EverblushColors.textMuted),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: EverblushColors.surfaceVariant),
                 borderRadius: BorderRadius.circular(8),
@@ -116,14 +127,14 @@ class _CreatePlaylistDialogState extends ConsumerState<CreatePlaylistDialog> {
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: _isLoading ? null : _create,
+          onPressed: _isLoading ? null : _save,
           child: _isLoading
               ? const SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Create'),
+              : const Text('Save'),
         ),
       ],
     );
