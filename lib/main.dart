@@ -7,9 +7,12 @@
 // Android/iOS runs this main() function.
 // ============================================================================
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 
 import 'app.dart';
 import 'core/utils/logger.dart';
@@ -26,6 +29,9 @@ import 'providers/audio/player_provider.dart';
 void main() async {
   // This must be called first when using async in main
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize JustAudioMediaKit for Linux support
+  JustAudioMediaKit.ensureInitialized();
 
   Log.info('Starting Musiqo...', tag: 'Main');
 
@@ -39,14 +45,16 @@ void main() async {
 
   // Make the status bar transparent with light icons
   // This gives us that edge-to-edge look
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.light,
-    ),
-  );
+  if (Platform.isAndroid || Platform.isIOS) {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+    );
+  }
 
   // Allow both portrait and landscape
   await SystemChrome.setPreferredOrientations([

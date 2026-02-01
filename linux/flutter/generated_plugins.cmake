@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   flutter_secure_storage_linux
   isar_flutter_libs
+  media_kit_libs_linux
   url_launcher_linux
 )
 

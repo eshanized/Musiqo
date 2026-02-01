@@ -222,8 +222,18 @@ final albumDetailsProvider = FutureProvider.family<AlbumDetails?, String>((ref, 
 
 AlbumDetails? _parseAlbumResponse(String albumId, Map<String, dynamic> response) {
   try {
-    final header = response['header']?['musicDetailHeaderRenderer'];
-    if (header == null) return null;
+    final header = response['header']?['musicDetailHeaderRenderer'] ??
+                   response['header']?['musicResponsiveHeaderRenderer'];
+    if (header == null) {
+      Log.error('Album header not found in response', tag: 'Content');
+      Log.info('Response keys: ${response.keys.toList()}', tag: 'Debug');
+      if (response['header'] != null) {
+        Log.info('Header keys: ${(response['header'] as Map).keys.toList()}', tag: 'Debug');
+      } else {
+        Log.info('Header object is NULL', tag: 'Debug');
+      }
+      return null;
+    }
     
     // Get title
     final title = _getText(header['title']) ?? 'Unknown Album';
@@ -250,7 +260,9 @@ AlbumDetails? _parseAlbumResponse(String albumId, Map<String, dynamic> response)
     
     // Get thumbnail
     String? thumbnailUrl;
-    final thumbnails = header['thumbnail']?['croppedSquareThumbnailRenderer']?['thumbnail']?['thumbnails'] as List?;
+    final thumbnailRenderer = header['thumbnail']?['croppedSquareThumbnailRenderer'] ??
+                            header['thumbnail']?['musicThumbnailRenderer'];
+    final thumbnails = thumbnailRenderer?['thumbnail']?['thumbnails'] as List?;
     if (thumbnails != null && thumbnails.isNotEmpty) {
       thumbnailUrl = thumbnails.last['url'];
     }

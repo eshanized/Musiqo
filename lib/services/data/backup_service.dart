@@ -66,11 +66,35 @@ class BackupService {
         final jsonString = await file.readAsString();
         final data = jsonDecode(jsonString);
 
-        // Restore logic here...
-        // For now just logging
-        Log.info('Backup loaded with ${data['history'].length} history items');
+        Log.info('Restoring backup...');
         
-        // TODO: Proper restoration logic
+        // 1. Restore Playlists (SharedPrefs)
+        if (data['playlists'] != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('playlists', jsonEncode(data['playlists']));
+          Log.info('Playlists restored');
+        }
+
+        // 2. Restore History (Isar)
+        if (data['history'] != null) {
+          final isar = DatabaseService.instance;
+          final historyList = (data['history'] as List).map((h) {
+            return HistoryEntity()
+              ..title = h['title']
+              ..artistName = h['artist']
+              ..playedAt = DateTime.parse(h['playedAt']);
+          }).toList();
+
+          await isar.writeTxn(() async {
+            // Optional: Clear existing history before import?
+            // For now, we just append/overwrite if logic allows, 
+            // but HistoryEntity usually has auto-increment ID so it appends.
+            await isar.historyEntitys.putAll(historyList);
+          });
+          Log.info('History restored: ${historyList.length} items');
+        }
+        
+        Log.info('Backup restoration complete');
       }
     } catch (e) {
       Log.error('Import failed: $e');

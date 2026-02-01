@@ -80,17 +80,7 @@ class SettingsScreen extends ConsumerWidget {
           
           const Divider(color: EverblushColors.outline, height: 32),
           
-          // Integrations
-          _sectionHeader('Integrations'),
-          _switchTile(
-            icon: Icons.discord,
-            title: 'Discord Rich Presence',
-            subtitle: 'Show what you are listening to',
-            value: true, // TODO: Use real provider
-            onChanged: (value) {},
-          ),
-          
-          const Divider(color: EverblushColors.outline, height: 32),
+
           
           // Downloads section
           _sectionHeader('Downloads'),
