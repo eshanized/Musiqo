@@ -30,6 +30,8 @@ dependencies:
   audio_service: ^0.18.15
   just_audio_background: ^0.0.1-beta.13
   audio_session: ^0.1.21
+  # Linux audio support (uses mpv)
+  just_audio_mpv: ^0.1.7
   
   # ============================================
   # Local Database - Isar

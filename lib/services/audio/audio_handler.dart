@@ -208,6 +208,11 @@ class MusiqoAudioHandler extends BaseAudioHandler with SeekHandler {
     _updateQueueState();
   }
 
+  /// Set volume (0.0 to 1.0)
+  void setVolume(double volume) {
+    _player.setVolume(volume.clamp(0.0, 1.0));
+  }
+
   // ============================================
   // Shuffle & Repeat
   // ============================================
