@@ -1,0 +1,52 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+<!--Everblush Gradient-->
+    <linearGradient id="everblushGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#67E8F9"/>
+      <stop offset="100%" stop-color="#F38BA8"/>
+    </linearGradient>
+<!--Soft Glow-->
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+<!--Background-->
+  <circle cx="256" cy="256" r="244" fill="#141B1E"/>
+<!--Outer Accent Ring-->
+  <circle cx="256" cy="256" r="214" stroke="url(#everblushGrad)" stroke-width="2" opacity="0.35"/>
+<!--Radial Frequency Ticks-->
+  <g stroke="#2A3439" stroke-width="3">
+    <line x1="256" y1="28" x2="256" y2="44"/>
+    <line x1="256" y1="468" x2="256" y2="484"/>
+    <line x1="28" y1="256" x2="44" y2="256"/>
+    <line x1="468" y1="256" x2="484" y2="256"/>
+  </g>
+<!--Inner Core-->
+  <circle cx="256" cy="256" r="160" fill="#0F1518" stroke="url(#everblushGrad)" stroke-width="2" opacity="0.6"/>
+<!--Waveform "M"-->
+  <path d="
+    M150 320
+    V190
+    C150 165 180 165 180 190
+    V260
+    C180 285 215 285 215 260
+    V205
+    C215 175 245 175 245 205
+    V260
+    C245 295 280 295 280 260
+    V190
+    C280 155 320 155 320 190
+    V260
+    C320 295 355 295 355 260
+    V205
+    C355 175 385 175 385 205
+    V320
+  " stroke="url(#everblushGrad)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#softGlow)"/>
+<!--Play Core-->
+<!--<circle cx="256" cy="256" r="34" fill="#141B1E" stroke="url(#everblushGrad)" stroke-width="2"/>-->
+<!--<polygon points="246,238 246,274 278,256" fill="url(#everblushGrad)"/>-->
+</svg>
