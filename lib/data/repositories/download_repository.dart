@@ -67,4 +67,14 @@ class DownloadRepository {
     final songs = await getDownloadedSongs();
     return songs.any((s) => s.id == id);
   }
+
+  /// Get total size of downloaded songs
+  /// Returns size in bytes
+  Future<int> getTotalSize() async {
+    // This would need file system access to get actual sizes
+    // For now, return an estimate based on song count
+    final songs = await getDownloadedSongs();
+    // Estimate ~5MB per song
+    return songs.length * 5 * 1024 * 1024;
+  }
 }

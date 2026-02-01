@@ -7,7 +7,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/innertube/youtube_facade.dart';
+import '../../services/innertube/innertube_client.dart';
 import '../../core/utils/logger.dart';
+
+/// Provider for the InnerTube client (low-level API access)
+final innerTubeClientProvider = Provider<InnerTubeClient>((ref) {
+  return InnerTubeClient();
+});
 
 /// Provider for the YouTube facade
 ///

@@ -133,3 +133,67 @@ class SearchResponse {
         ...videos,
       ];
 }
+
+/// Generic search result item type for widgets
+enum SearchResultType { song, album, artist, playlist, video }
+
+/// Generic search result item for widgets
+class SearchResultItem {
+  final String id;
+  final String title;
+  final String? subtitle;
+  final String? thumbnailUrl;
+  final SearchResultType type;
+
+  const SearchResultItem({
+    required this.id,
+    required this.title,
+    this.subtitle,
+    this.thumbnailUrl,
+    required this.type,
+  });
+
+  /// Create from SongResult
+  factory SearchResultItem.fromSong(SongResult result) {
+    return SearchResultItem(
+      id: result.song.id,
+      title: result.song.title,
+      subtitle: result.song.artistName,
+      thumbnailUrl: result.song.thumbnailUrl,
+      type: SearchResultType.song,
+    );
+  }
+
+  /// Create from AlbumResult
+  factory SearchResultItem.fromAlbum(AlbumResult result) {
+    return SearchResultItem(
+      id: result.id,
+      title: result.name,
+      subtitle: result.artistName,
+      thumbnailUrl: result.thumbnailUrl,
+      type: SearchResultType.album,
+    );
+  }
+
+  /// Create from ArtistResult
+  factory SearchResultItem.fromArtist(ArtistResult result) {
+    return SearchResultItem(
+      id: result.id,
+      title: result.name,
+      subtitle: result.subscriberCount,
+      thumbnailUrl: result.thumbnailUrl,
+      type: SearchResultType.artist,
+    );
+  }
+
+  /// Create from PlaylistResult
+  factory SearchResultItem.fromPlaylist(PlaylistResult result) {
+    return SearchResultItem(
+      id: result.id,
+      title: result.name,
+      subtitle: result.author,
+      thumbnailUrl: result.thumbnailUrl,
+      type: SearchResultType.playlist,
+    );
+  }
+}

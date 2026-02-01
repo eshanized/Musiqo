@@ -6,4 +6,4 @@
 
 export 'widgets/widgets.dart';
 export 'screens/screens.dart';
-export 'navigation/router.dart';
+// Note: router.dart excluded - not yet implemented

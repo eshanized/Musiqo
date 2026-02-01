@@ -6,17 +6,16 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../services/innertube/youtube_facade.dart';
-import '../../services/innertube/parsers/artist_parser.dart';
+import '../../services/innertube/pages/artist_page.dart';
 import '../data/youtube_provider.dart';
 
 /// Provider for artist details
-final artistDetailsProvider = FutureProvider.family<ArtistData?, String>((
+final artistDetailsProvider = FutureProvider.family<ArtistPage?, String>((
   ref,
   artistId,
 ) async {
-  final facade = ref.watch(youtubeFacadeProvider);
-  return facade.getArtistDetails(artistId);
+  final facade = ref.watch(youtubeProvider);
+  return facade.getArtist(artistId);
 });
 
 /// Provider for artist's top songs
@@ -29,7 +28,7 @@ final artistTopSongsProvider = FutureProvider.family<List<dynamic>, String>((
 });
 
 /// Provider for artist's albums
-final artistAlbumsProvider = FutureProvider.family<List<AlbumPreview>, String>((
+final artistAlbumsProvider = FutureProvider.family<List<ArtistAlbum>, String>((
   ref,
   artistId,
 ) async {

@@ -34,8 +34,7 @@ class GradientImage extends StatelessWidget {
         children: [
           CachedArtwork(
             url: url,
-            width: width ?? double.infinity,
-            height: height,
+            size: height ?? (width ?? 200),
           ),
           Container(
             decoration: BoxDecoration(

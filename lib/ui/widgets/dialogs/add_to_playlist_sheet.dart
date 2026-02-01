@@ -89,8 +89,8 @@ class AddToPlaylistSheet extends ConsumerWidget {
               ),
             ),
             onTap: () async {
-              final name = await CreatePlaylistDialog.show(context);
-              if (name != null && context.mounted) {
+              await CreatePlaylistDialog.show(context);
+              if (context.mounted) {
                 // TODO: Create playlist and add song
                 Navigator.pop(context);
               }

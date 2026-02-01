@@ -86,9 +86,11 @@ class PlaylistScreen extends ConsumerWidget {
                     fit: StackFit.expand,
                     children: [
                       if (playlist.thumbnailUrl != null)
-                        CachedArtwork(
-                          url: playlist.thumbnailUrl,
-                          fit: BoxFit.cover,
+                        SizedBox.expand(
+                          child: CachedArtwork(
+                            url: playlist.thumbnailUrl,
+                            size: 280,
+                          ),
                         )
                       else
                         Container(
@@ -102,7 +104,7 @@ class PlaylistScreen extends ConsumerWidget {
                             end: Alignment.bottomCenter,
                             colors: [
                               Colors.transparent,
-                              EverblushColors.background.withOpacity(0.8),
+                              EverblushColors.background.withValues(alpha: 0.8),
                               EverblushColors.background,
                             ],
                             stops: const [0.0, 0.7, 1.0],
@@ -157,7 +159,7 @@ class PlaylistScreen extends ConsumerWidget {
                                 for (var i = 1; i < playlist.songs.length; i++) {
                                   audioHandler.addToQueue(playlist.songs[i]);
                                 }
-                                audioHandler.setShuffleMode(true);
+                                audioHandler.toggleShuffle();
                               },
                               icon: const Icon(Icons.shuffle_rounded),
                               label: const Text('Shuffle'),

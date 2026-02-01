@@ -17,7 +17,7 @@ class AccountInfo {
   final String email;
   final String? thumbnailUrl;
   
-  AccountInfo({required this.name, required this.email, this.thumbnailUrl});
+  const AccountInfo({required this.name, required this.email, this.thumbnailUrl});
 }
 
 final accountInfoProvider = StateProvider<AsyncValue<AccountInfo?>>((ref) {

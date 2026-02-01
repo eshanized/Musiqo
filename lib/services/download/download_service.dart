@@ -54,13 +54,16 @@ class DownloadService {
       yield 1.0; // Retrieve complete
       Log.success('Download complete: $id', tag: 'Download');
       
-    } catch (e) {
-      if (CancelToken.isCancel(e as Exception)) {
+    } on DioException catch (e) {
+      if (CancelToken.isCancel(e)) {
         Log.info('Download cancelled: $id', tag: 'Download');
       } else {
         Log.error('Download failed for $id', error: e, tag: 'Download');
         rethrow;
       }
+    } catch (e) {
+      Log.error('Download failed for $id', error: e, tag: 'Download');
+      rethrow;
     } finally {
       _cancelTokens.remove(id);
     }

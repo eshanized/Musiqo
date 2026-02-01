@@ -66,10 +66,12 @@ class DownloadTile extends StatelessWidget {
         return 'Waiting...';
       case DownloadStatus.downloading:
         return '${(download.progress * 100).toInt()}%';
-      case DownloadStatus.completed:
+      case DownloadStatus.complete:
         return 'Completed';
       case DownloadStatus.failed:
         return 'Failed';
+      case DownloadStatus.cancelled:
+        return 'Cancelled';
     }
   }
 
@@ -87,7 +89,7 @@ class DownloadTile extends StatelessWidget {
           icon: const Icon(Icons.refresh_rounded),
           color: EverblushColors.primary,
         );
-      case DownloadStatus.completed:
+      case DownloadStatus.complete:
         return const Icon(
           Icons.check_circle_rounded,
           color: EverblushColors.success,

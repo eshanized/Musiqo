@@ -12,14 +12,16 @@ import '../lists/search_result_tile.dart';
 
 /// Search results grid/list display.
 class SearchResults extends StatelessWidget {
-  final SearchResult result;
+  final SearchResponse result;
   final Function(SearchResultItem)? onItemTap;
 
   const SearchResults({super.key, required this.result, this.onItemTap});
 
   @override
   Widget build(BuildContext context) {
-    if (result.items.isEmpty) {
+    final items = _convertToItems();
+    
+    if (items.isEmpty) {
       return const Center(
         child: Text(
           'No results found',
@@ -30,11 +32,31 @@ class SearchResults extends StatelessWidget {
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: result.items.length,
+      itemCount: items.length,
       itemBuilder: (context, index) {
-        final item = result.items[index];
+        final item = items[index];
         return SearchResultTile(item: item, onTap: () => onItemTap?.call(item));
       },
     );
   }
+
+  List<SearchResultItem> _convertToItems() {
+    final items = <SearchResultItem>[];
+    
+    for (final song in result.songs) {
+      items.add(SearchResultItem.fromSong(song));
+    }
+    for (final album in result.albums) {
+      items.add(SearchResultItem.fromAlbum(album));
+    }
+    for (final artist in result.artists) {
+      items.add(SearchResultItem.fromArtist(artist));
+    }
+    for (final playlist in result.playlists) {
+      items.add(SearchResultItem.fromPlaylist(playlist));
+    }
+    
+    return items;
+  }
 }
+

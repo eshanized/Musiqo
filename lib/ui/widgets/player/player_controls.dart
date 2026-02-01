@@ -63,7 +63,7 @@ class PlayerControls extends StatelessWidget {
         // Play/Pause
         AnimatedPlayButton(
           isPlaying: isPlaying,
-          onPressed: isPlaying ? onPause : onPlay,
+          onTap: (isPlaying ? onPause : onPlay) ?? () {},
           size: 64,
         ),
 

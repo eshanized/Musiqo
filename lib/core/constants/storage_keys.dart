@@ -43,4 +43,7 @@ class StorageKeys {
   static const String contentCountry = 'content_country';
   static const String imageCacheSize = 'image_cache_size';
   static const String searchHistoryPaused = 'search_history_paused';
+  
+  // Settings bundle (for backup/restore)
+  static const String userPreferences = 'user_preferences';
 }

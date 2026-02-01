@@ -114,7 +114,7 @@ class DownloadsScreen extends ConsumerWidget {
                               style: const TextStyle(color: EverblushColors.textPrimary),
                             ),
                             subtitle: Text(
-                              song.artist,
+                              song.artistName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(color: EverblushColors.textMuted),

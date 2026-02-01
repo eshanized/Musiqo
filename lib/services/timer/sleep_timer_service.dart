@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/utils/logger.dart';
+import '../../providers/audio/player_provider.dart' show audioHandlerProvider;
 import '../audio/audio_handler.dart';
 
 /// Sleep timer state

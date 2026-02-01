@@ -10,23 +10,27 @@ import '../../services/integrations/discord_rpc_service.dart';
 
 final discordRpcControllerProvider = Provider((ref) {
   final rpcService = ref.watch(discordRpcServiceProvider);
-  final currentSong = ref.watch(currentSongProvider);
-  final isPlaying = ref.watch(isPlayingProvider);
-  final position = ref.watch(positionProvider);
-  final duration = ref.watch(durationProvider);
+  final currentSongAsync = ref.watch(currentSongProvider);
+  final isPlayingAsync = ref.watch(isPlayingProvider);
+  final positionAsync = ref.watch(positionProvider);
+  final durationAsync = ref.watch(durationProvider);
   
-  // TODO: Add setting to enable/disable RPC
+  // Extract values from async states
+  final currentSong = currentSongAsync.valueOrNull;
+  final isPlaying = isPlayingAsync.valueOrNull ?? false;
+  final position = positionAsync.valueOrNull ?? Duration.zero;
+  final duration = durationAsync.valueOrNull ?? Duration.zero;
   
   if (currentSong != null) {
-      rpcService.updatePresence(
-        title: currentSong.title,
-        artist: currentSong.artist,
-        album: currentSong.album,
-        position: position,
-        duration: duration,
-        isPlaying: isPlaying,
-        imageUrl: currentSong.thumbnailUrl,
-      );
+    rpcService.updatePresence(
+      title: currentSong.title,
+      artist: currentSong.artistName,
+      album: currentSong.album?.name,
+      position: position,
+      duration: duration,
+      isPlaying: isPlaying,
+      imageUrl: currentSong.thumbnailUrl,
+    );
   }
   
   ref.onDispose(() {

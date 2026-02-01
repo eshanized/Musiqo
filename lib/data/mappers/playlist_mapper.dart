@@ -32,6 +32,6 @@ class PlaylistMapper {
       ..thumbnailUrl = playlist.thumbnailUrl
       ..isLocal = playlist.isLocal
       ..author = playlist.author
-      ..createdAt = playlist.createdAt;
+      ..createdAt = playlist.createdAt ?? DateTime.now();
   }
 }

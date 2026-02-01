@@ -7,14 +7,14 @@
 // Core
 export 'core/app_scaffold.dart';
 export 'core/bottom_nav_bar.dart';
-export 'core/mini_player.dart';
+// Note: mini_player.dart excluded - not yet implemented
 
 // Images
 export 'images/cached_artwork.dart';
 export 'images/image_placeholder.dart';
 
 // Lists
-export 'lists/section_header.dart';
+// Note: section_header.dart excluded - use common/section_header.dart instead
 export 'lists/carousel_card.dart';
 export 'lists/song_tile.dart';
 export 'lists/artist_card.dart';
@@ -52,3 +52,4 @@ export 'common/loading_indicator.dart';
 export 'common/error_display.dart';
 export 'common/chip_group.dart';
 export 'common/labeled_divider.dart';
+export 'common/section_header.dart';

@@ -45,7 +45,6 @@ dependencies:
   # Dio for HTTP, with interceptors support
   # ============================================
   dio: ^5.7.0
-  retrofit: ^4.4.1
   connectivity_plus: ^6.1.0
   
   # ============================================
@@ -105,10 +104,7 @@ dev_dependencies:
   
   # Code generation
   build_runner: ^2.4.13
-  riverpod_generator: ^2.4.3
-  # Note: isar_generator removed due to analyzer version conflict with riverpod_generator
-  # Our Isar entities use manual Schema configuration instead
-  retrofit_generator: ^9.1.2
+  isar_generator: ^3.1.0+1
   
   # Linting
   flutter_lints: ^5.0.0

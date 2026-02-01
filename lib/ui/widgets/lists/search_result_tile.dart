@@ -51,6 +51,8 @@ class SearchResultTile extends StatelessWidget {
         return 'Artist';
       case SearchResultType.playlist:
         return 'Playlist';
+      case SearchResultType.video:
+        return 'Video';
     }
   }
 
@@ -60,6 +62,7 @@ class SearchResultTile extends StatelessWidget {
       SearchResultType.album => Icons.album_rounded,
       SearchResultType.artist => Icons.person_rounded,
       SearchResultType.playlist => Icons.playlist_play_rounded,
+      SearchResultType.video => Icons.videocam_rounded,
     };
 
     return Icon(

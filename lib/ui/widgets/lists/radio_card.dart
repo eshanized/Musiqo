@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: MIT
 // ============================================================================
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Radio;
 
 import '../../../core/theme/everblush_colors.dart';
 import '../../../data/models/radio.dart';
@@ -12,7 +12,7 @@ import '../images/cached_artwork.dart';
 
 /// Card for displaying radio stations.
 class RadioCard extends StatelessWidget {
-  final Radio radio;
+  final RadioStation radio;
   final VoidCallback? onTap;
   final double width;
 

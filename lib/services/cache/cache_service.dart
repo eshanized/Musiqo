@@ -54,7 +54,7 @@ class CacheService {
         }
       }
     } catch (e) {
-      Log.warn('Error calculating directory size: $e');
+      Log.warning('Error calculating directory size: $e');
     }
 
     return size;

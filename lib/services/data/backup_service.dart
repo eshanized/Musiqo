@@ -19,13 +19,11 @@ import '../../data/database/collections/history_entity.dart';
 import '../../data/database/collections/playlist_entity.dart';
 
 class BackupService {
-  final DatabaseService _dbService;
-
-  BackupService(this._dbService);
+  BackupService();
 
   Future<void> exportData() async {
     try {
-      final isar = _dbService.db;
+      final isar = DatabaseService.instance;
       final history = await isar.historyEntitys.where().findAll();
       final songs = await isar.songEntitys.where().findAll();
       // Export playlists from SharedPreferences (as currently implemented there)
@@ -37,7 +35,7 @@ class BackupService {
         'timestamp': DateTime.now().toIso8601String(),
         'history': history.map((e) => {
           'title': e.title,
-          'artist': e.artist,
+          'artist': e.artistName,
           'playedAt': e.playedAt.toIso8601String(),
         }).toList(),
         'favorites': songs.where((s) => s.isLiked).map((s) => s.videoId).toList(),

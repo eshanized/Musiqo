@@ -51,7 +51,7 @@ class ExploreScreen extends ConsumerWidget {
                 // Moods & Genres grid
                 const SectionHeader(title: 'Moods & Genres'),
                 const SizedBox(height: 12),
-                _buildMoodsGrid(),
+                _buildMoodsGrid(context),
                 
                 const SizedBox(height: 24),
                 
@@ -71,7 +71,7 @@ class ExploreScreen extends ConsumerWidget {
                   subtitle: 'Top songs right now',
                 ),
                 const SizedBox(height: 12),
-                _buildCharts(),
+                _buildCharts(context),
                 
                 const SizedBox(height: 24),
                 
@@ -91,7 +91,7 @@ class ExploreScreen extends ConsumerWidget {
   }
 
   /// Moods and Genres grid
-  Widget _buildMoodsGrid() {
+  Widget _buildMoodsGrid(BuildContext context) {
     final moods = [
       ('Chill', EverblushColors.tertiary),
       ('Workout', EverblushColors.error),
@@ -175,7 +175,7 @@ class ExploreScreen extends ConsumerWidget {
   }
 
   /// Charts section
-  Widget _buildCharts() {
+  Widget _buildCharts(BuildContext context) {
     return SizedBox(
       height: 200,
       child: ListView(

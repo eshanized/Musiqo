@@ -6,17 +6,16 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../services/innertube/youtube_facade.dart';
-import '../../services/innertube/parsers/album_parser.dart';
+import '../../services/innertube/pages/album_page.dart';
 import '../data/youtube_provider.dart';
 
 /// Provider for album details
-final albumDetailsProvider = FutureProvider.family<AlbumData?, String>((
+final albumDetailsProvider = FutureProvider.family<AlbumPage?, String>((
   ref,
   albumId,
 ) async {
-  final facade = ref.watch(youtubeFacadeProvider);
-  return facade.getAlbumDetails(albumId);
+  final facade = ref.watch(youtubeProvider);
+  return facade.getAlbum(albumId);
 });
 
 /// Provider for album tracks

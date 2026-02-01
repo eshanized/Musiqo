@@ -93,6 +93,21 @@ class EverblushColors {
   
   /// Shimmer highlight for that nice animation
   static const Color shimmerHighlight = Color(0xFF3b4244);
+
+  // ===========================================
+  // Additional Colors for Moods & Genres
+  // ===========================================
+  
+  /// Alias colors matching common color names
+  static const Color red = Color(0xFFe57474);
+  static const Color pink = Color(0xFFef9bc0);
+  static const Color purple = Color(0xFFc47fd5);
+  static const Color blue = Color(0xFF67b0e8);
+  static const Color cyan = Color(0xFF6cbfbf);
+  static const Color teal = Color(0xFF6cbfbf);
+  static const Color green = Color(0xFF8ccf7e);
+  static const Color yellow = Color(0xFFe5c76b);
+  static const Color orange = Color(0xFFe59e67);
 }
 
 // A quick helper to make semi-transparent versions of our colors

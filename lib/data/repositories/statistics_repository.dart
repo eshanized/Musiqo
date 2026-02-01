@@ -68,7 +68,11 @@ class StatisticsRepository {
         .songIdEqualTo(songId)
         .findAll();
 
-    return records.fold(0, (sum, record) => sum + record.playCount);
+    int total = 0;
+    for (final record in records) {
+      total += record.playCount;
+    }
+    return total;
   }
 
   /// Get monthly play count for a song
@@ -162,7 +166,11 @@ class StatisticsRepository {
         .yearEqualTo(year)
         .findAll();
 
-    return records.fold(0, (sum, r) => sum + r.playCount);
+    int total = 0;
+    for (final r in records) {
+      total += r.playCount;
+    }
+    return total;
   }
 
   /// Get monthly stats for a year

@@ -5,14 +5,15 @@
 // ============================================================================
 
 /// Radio station based on a song or artist.
-class Radio {
+/// Named RadioStation to avoid conflict with Flutter's Radio widget.
+class RadioStation {
   final String id;
   final String name;
   final String? seedSongId;
   final String? seedArtistId;
   final String? thumbnailUrl;
 
-  const Radio({
+  const RadioStation({
     required this.id,
     required this.name,
     this.seedSongId,
@@ -23,3 +24,6 @@ class Radio {
   bool get isFromSong => seedSongId != null;
   bool get isFromArtist => seedArtistId != null;
 }
+
+/// Typedef for backward compatibility
+typedef Radio = RadioStation;
