@@ -36,7 +36,7 @@ class _EqualizerScreenState extends State<EqualizerScreen> {
           Switch(
             value: _enabled,
             onChanged: (value) => setState(() => _enabled = value),
-            activeColor: EverblushColors.primary,
+            activeThumbColor: EverblushColors.primary,
           ),
         ],
       ),

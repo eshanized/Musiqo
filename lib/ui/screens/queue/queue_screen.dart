@@ -187,7 +187,7 @@ class QueueScreen extends ConsumerWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            EverblushColors.primary.withOpacity(0.2),
+            EverblushColors.primary.withValues(alpha: 0.2),
             Colors.transparent,
           ],
         ),

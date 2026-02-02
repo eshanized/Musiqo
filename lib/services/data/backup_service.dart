@@ -16,7 +16,6 @@ import '../../core/utils/logger.dart';
 import '../../data/database/database_service.dart';
 import '../../data/database/collections/song_entity.dart';
 import '../../data/database/collections/history_entity.dart';
-import '../../data/database/collections/playlist_entity.dart';
 
 class BackupService {
   BackupService();

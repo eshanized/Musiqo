@@ -226,12 +226,6 @@ AlbumDetails? _parseAlbumResponse(String albumId, Map<String, dynamic> response)
                    response['header']?['musicResponsiveHeaderRenderer'];
     if (header == null) {
       Log.error('Album header not found in response', tag: 'Content');
-      Log.info('Response keys: ${response.keys.toList()}', tag: 'Debug');
-      if (response['header'] != null) {
-        Log.info('Header keys: ${(response['header'] as Map).keys.toList()}', tag: 'Debug');
-      } else {
-        Log.info('Header object is NULL', tag: 'Debug');
-      }
       return null;
     }
     

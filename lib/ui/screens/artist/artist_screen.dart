@@ -104,7 +104,7 @@ class ArtistScreen extends ConsumerWidget {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        EverblushColors.background.withOpacity(0.7),
+                        EverblushColors.background.withValues(alpha: 0.7),
                         EverblushColors.background,
                       ],
                       stops: const [0.0, 0.7, 1.0],

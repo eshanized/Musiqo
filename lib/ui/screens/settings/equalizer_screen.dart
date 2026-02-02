@@ -6,7 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:math' as math;
+
 
 import '../../../core/theme/everblush_colors.dart';
 import '../../../services/audio/equalizer_service.dart';
@@ -39,7 +39,7 @@ class EqualizerScreen extends ConsumerWidget {
           Switch(
             value: state.enabled,
             onChanged: (value) => notifier.toggleEnabled(value),
-            activeColor: EverblushColors.primary,
+            activeThumbColor: EverblushColors.primary,
           ),
           const SizedBox(width: 16),
         ],
@@ -66,7 +66,7 @@ class EqualizerScreen extends ConsumerWidget {
                         ? (_) => notifier.applyPreset(name, _presets[name]!)
                         : null,
                     backgroundColor: EverblushColors.surfaceVariant,
-                    selectedColor: EverblushColors.primary.withOpacity(0.2),
+                    selectedColor: EverblushColors.primary.withValues(alpha: 0.2),
                     labelStyle: TextStyle(
                       color: isSelected ? EverblushColors.primary : EverblushColors.textPrimary,
                     ),

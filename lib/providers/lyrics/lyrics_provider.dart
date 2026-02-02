@@ -6,7 +6,7 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/models/song.dart';
+
 import '../../services/lyrics/lyrics_service.dart';
 import '../audio/player_provider.dart';
 

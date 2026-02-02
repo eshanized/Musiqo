@@ -5,6 +5,7 @@
 // ============================================================================
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/models/search_result.dart';
 import 'youtube_provider.dart';
@@ -45,10 +46,25 @@ final searchHistoryProvider =
 
 /// Notifier for search history
 class SearchHistoryNotifier extends StateNotifier<List<String>> {
-  SearchHistoryNotifier() : super([]);
+  static const _key = 'search_history';
+
+  SearchHistoryNotifier() : super([]) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getStringList(_key) ?? [];
+  }
+
+  Future<void> _save() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_key, state);
+  }
 
   /// Add a search term to history
   void add(String term) {
+    if (term.trim().isEmpty) return;
     // Remove if already exists (to move to top)
     state = state.where((t) => t != term).toList();
     // Add to beginning
@@ -57,16 +73,18 @@ class SearchHistoryNotifier extends StateNotifier<List<String>> {
     if (state.length > 20) {
       state = state.sublist(0, 20);
     }
-    // TODO: Persist to SharedPreferences
+    _save();
   }
 
   /// Remove a term from history
   void remove(String term) {
     state = state.where((t) => t != term).toList();
+    _save();
   }
 
   /// Clear all history
   void clear() {
     state = [];
+    _save();
   }
 }

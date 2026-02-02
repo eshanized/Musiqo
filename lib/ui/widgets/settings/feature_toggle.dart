@@ -46,7 +46,7 @@ class FeatureToggle extends StatelessWidget {
       secondary: icon != null
           ? Icon(icon, color: EverblushColors.textSecondary)
           : null,
-      activeColor: EverblushColors.primary,
+      activeThumbColor: EverblushColors.primary,
     );
   }
 }

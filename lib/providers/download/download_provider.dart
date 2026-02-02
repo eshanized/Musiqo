@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/download/download_service.dart';
 import '../../data/repositories/download_repository.dart';
 import '../../data/models/song.dart';
+import '../../core/utils/logger.dart';
+import '../../providers/data/youtube_provider.dart';
 
 final downloadServiceProvider = Provider((ref) => DownloadService());
 final downloadRepositoryProvider = Provider((ref) => DownloadRepository());
@@ -26,20 +28,49 @@ class DownloadNotifier extends StateNotifier<Map<String, double>> {
   // State is a map of SongID -> Progress (0.0 to 1.0)
   DownloadNotifier(this._service, this._repo, this._ref) : super({});
 
-  /// Download a song (placeholder - needs stream URL from YouTubeFacade)
+  /// Download a song
   Future<void> downloadSong(Song song) async {
     if (state.containsKey(song.id)) return; // Already downloading
 
-    // For now, this is a placeholder that shows the feature is available
-    // In production, you would:
-    // 1. Use YouTubeFacade to get the stream URL
-    // 2. Download the audio file
-    // 3. Save metadata to database
-    throw UnimplementedError(
-      'Download feature requires YouTube stream URL. '
-      'To implement: inject YouTubeFacade, call getSongStreamUrl(), '
-      'then use DownloadService to download the file.'
-    );
+    try {
+      Log.info('Starting download for ${song.title}', tag: 'Download');
+      final youtube = _ref.read(youtubeProvider);
+      
+      // 1. Get Stream URL
+      final details = await youtube.getSongDetails(song.id);
+      if (details?.streamUrl == null) {
+        throw Exception('Could not get stream URL');
+      }
+
+      // 2. Get save path
+      final dir = await _service.getMusicDirectory();
+      if (dir == null) throw Exception('Storage not accessible');
+      
+      final cleanTitle = song.title.replaceAll(RegExp(r'[^\w\s\-]'), '').trim();
+      final filePath = '$dir/$cleanTitle.m4a';
+      
+      state = {...state, song.id: 0.0};
+
+      // 3. Download
+      await for (final progress in _service.downloadFile(
+        url: details!.streamUrl!, 
+        savePath: filePath, 
+        id: song.id,
+      )) {
+        state = {...state, song.id: progress};
+      }
+
+      // 4. Save metadata
+      await _repo.addDownloadedSong(song, filePath);
+      
+      Log.success('Download complete: ${song.title}', tag: 'Download');
+    } catch (e) {
+      Log.error('Download failed', error: e, tag: 'Download');
+    } finally {
+      final newState = {...state};
+      newState.remove(song.id);
+      state = newState;
+    }
   }
 }
 

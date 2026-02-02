@@ -8,14 +8,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/everblush_colors.dart';
+import '../../../data/models/playlist.dart';
 import '../../../providers/playlist/playlist_provider.dart';
 
 /// Dialog for creating a new playlist
 class CreatePlaylistDialog extends ConsumerStatefulWidget {
   const CreatePlaylistDialog({super.key});
 
-  static Future<void> show(BuildContext context) {
-    return showDialog(
+  static Future<Playlist?> show(BuildContext context) {
+    return showDialog<Playlist>(
       context: context,
       builder: (context) => const CreatePlaylistDialog(),
     );
@@ -44,13 +45,13 @@ class _CreatePlaylistDialogState extends ConsumerState<CreatePlaylistDialog> {
     setState(() => _isLoading = true);
     
     try {
-      await ref.read(playlistActionsProvider.notifier).createPlaylist(
+      final playlist = await ref.read(playlistActionsProvider.notifier).createPlaylist(
         name,
         description: _descController.text.trim().isNotEmpty 
             ? _descController.text.trim() 
             : null,
       );
-      if (mounted) Navigator.pop(context);
+      if (mounted) Navigator.pop(context, playlist);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -253,7 +253,7 @@ class _LyricsScreenState extends ConsumerState<LyricsScreen> {
         color: EverblushColors.surface,
         border: Border(
           top: BorderSide(
-            color: EverblushColors.outline.withOpacity(0.2),
+            color: EverblushColors.outline.withValues(alpha: 0.2),
           ),
         ),
       ),

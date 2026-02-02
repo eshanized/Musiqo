@@ -69,7 +69,7 @@ class PlaybackSettingsScreen extends ConsumerWidget {
             onChanged: (value) {
               // TODO: Update setting
             },
-            activeColor: EverblushColors.primary,
+            activeThumbColor: EverblushColors.primary,
           ),
 
           // Skip silence
@@ -90,7 +90,7 @@ class PlaybackSettingsScreen extends ConsumerWidget {
             onChanged: (value) {
               // TODO: Update setting
             },
-            activeColor: EverblushColors.primary,
+            activeThumbColor: EverblushColors.primary,
           ),
 
           // Gapless playback
@@ -111,7 +111,7 @@ class PlaybackSettingsScreen extends ConsumerWidget {
             onChanged: (value) {
               // TODO: Update setting
             },
-            activeColor: EverblushColors.primary,
+            activeThumbColor: EverblushColors.primary,
           ),
 
           const Divider(color: EverblushColors.outline),

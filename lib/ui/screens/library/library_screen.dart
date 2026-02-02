@@ -198,7 +198,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
         // Create playlist button
         _libraryItem(
           icon: Icons.add_rounded,
-          iconBgColor: EverblushColors.primary.withOpacity(0.2),
+          iconBgColor: EverblushColors.primary.withValues(alpha: 0.2),
           iconColor: EverblushColors.primary,
           title: 'Create Playlist',
           onTap: () {
@@ -344,7 +344,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
             Icon(
               icon,
               size: 64,
-              color: EverblushColors.textMuted.withOpacity(0.5),
+              color: EverblushColors.textMuted.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(

@@ -70,7 +70,7 @@ class DownloadSettingsScreen extends ConsumerWidget {
             onChanged: (value) {
               // TODO: Update setting
             },
-            activeColor: EverblushColors.primary,
+            activeThumbColor: EverblushColors.primary,
           ),
 
           const Divider(color: EverblushColors.outline),

@@ -192,7 +192,7 @@ class SleepTimerDialog extends ConsumerWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isDestructive
-                  ? EverblushColors.error.withOpacity(0.2)
+                  ? EverblushColors.error.withValues(alpha: 0.2)
                   : EverblushColors.surfaceVariant,
               shape: BoxShape.circle,
             ),

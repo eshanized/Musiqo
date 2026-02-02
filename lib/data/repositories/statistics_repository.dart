@@ -99,7 +99,7 @@ class StatisticsRepository {
   }) async {
     final cutoff = DateTime.now().subtract(period);
     final cutoffYear = cutoff.year;
-    final cutoffMonth = cutoff.month;
+
 
     // Get all recent play counts
     final records = await _db.playCountEntitys

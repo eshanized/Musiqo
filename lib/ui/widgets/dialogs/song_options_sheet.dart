@@ -5,30 +5,23 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../core/theme/everblush_colors.dart';
 import '../../../data/models/song.dart';
+import '../../../providers/download/download_provider.dart';
 import '../images/cached_artwork.dart';
+import 'add_to_playlist_sheet.dart';
 
 /// Bottom sheet with song actions (add to playlist, download, share, etc.)
-class SongOptionsSheet extends StatelessWidget {
+class SongOptionsSheet extends ConsumerWidget {
   final Song song;
-  final VoidCallback? onAddToPlaylist;
-  final VoidCallback? onDownload;
-  final VoidCallback? onShare;
-  final VoidCallback? onAddToQueue;
-  final VoidCallback? onGoToArtist;
-  final VoidCallback? onGoToAlbum;
 
   const SongOptionsSheet({
     super.key,
     required this.song,
-    this.onAddToPlaylist,
-    this.onDownload,
-    this.onShare,
-    this.onAddToQueue,
-    this.onGoToArtist,
-    this.onGoToAlbum,
   });
 
   /// Show this sheet
@@ -42,7 +35,7 @@ class SongOptionsSheet extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: const BoxDecoration(
         color: EverblushColors.surface,
@@ -112,23 +105,25 @@ class SongOptionsSheet extends StatelessWidget {
             title: 'Add to playlist',
             onTap: () {
               Navigator.pop(context);
-              onAddToPlaylist?.call();
+              AddToPlaylistSheet.show(context, song);
             },
           ),
+          /*
           _optionTile(
             icon: Icons.queue_music_rounded,
             title: 'Add to queue',
             onTap: () {
               Navigator.pop(context);
-              onAddToQueue?.call();
+              // TODO: Add to queue logic via audio service
             },
           ),
+          */
           _optionTile(
             icon: Icons.download_outlined,
             title: 'Download',
             onTap: () {
               Navigator.pop(context);
-              onDownload?.call();
+              ref.read(downloadProvider.notifier).downloadSong(song);
             },
           ),
           if (song.artists.isNotEmpty)
@@ -137,7 +132,7 @@ class SongOptionsSheet extends StatelessWidget {
               title: 'Go to artist',
               onTap: () {
                 Navigator.pop(context);
-                onGoToArtist?.call();
+                context.push('/artist/${song.artists.first.id}');
               },
             ),
           if (song.album != null)
@@ -146,7 +141,7 @@ class SongOptionsSheet extends StatelessWidget {
               title: 'Go to album',
               onTap: () {
                 Navigator.pop(context);
-                onGoToAlbum?.call();
+                context.push('/album/${song.album!.id}');
               },
             ),
           _optionTile(
@@ -154,7 +149,7 @@ class SongOptionsSheet extends StatelessWidget {
             title: 'Share',
             onTap: () {
               Navigator.pop(context);
-              onShare?.call();
+              Share.share('Check out "${song.title}" by ${song.artistName} on Musiqo!');
             },
           ),
 

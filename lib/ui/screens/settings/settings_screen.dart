@@ -11,8 +11,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/everblush_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../providers/auth/auth_provider.dart';
-import '../../../providers/auth/auth_provider.dart';
-import '../../../services/auth/google_auth_service.dart';
+
 import '../../../providers/data/backup_provider.dart';
 import '../../navigation/routes.dart';
 
@@ -437,7 +436,7 @@ class SettingsScreen extends ConsumerWidget {
           : null,
       value: value,
       onChanged: onChanged,
-      activeColor: EverblushColors.primary,
+      activeThumbColor: EverblushColors.primary,
     );
   }
 }

@@ -13,7 +13,7 @@ import '../../../providers/audio/player_provider.dart';
 import '../../../providers/content/content_provider.dart';
 import '../../../providers/library/library_provider.dart';
 import '../../navigation/routes.dart';
-import '../../widgets/images/cached_artwork.dart';
+
 
 /// Album detail screen showing tracks and info.
 class AlbumScreen extends ConsumerWidget {
@@ -80,7 +80,7 @@ class AlbumScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
+                          color: Colors.black.withValues(alpha: 0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),

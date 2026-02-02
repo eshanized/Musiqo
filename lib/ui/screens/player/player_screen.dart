@@ -389,7 +389,7 @@ class PlayerScreen extends ConsumerWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: EverblushColors.primary.withOpacity(0.3),
+                color: EverblushColors.primary.withValues(alpha: 0.3),
                 blurRadius: 20,
                 spreadRadius: 2,
               ),
