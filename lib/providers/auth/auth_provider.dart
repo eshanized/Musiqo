@@ -42,9 +42,9 @@ class AuthNotifier extends StateNotifier<AsyncValue<bool>> {
       await _service.init();
       if (_service.isLoggedIn) {
         _updateClientAuth();
-        // TODO: Fetch real account info
+        // User info cannot be extracted from cookies - show authenticated state
         _ref.read(accountInfoProvider.notifier).state = const AsyncValue.data(
-          AccountInfo(name: 'YouTube User', email: 'Signed in'),
+          AccountInfo(name: 'Signed In', email: 'YouTube Music Account'),
         );
       } else {
          _ref.read(accountInfoProvider.notifier).state = const AsyncValue.data(null);
@@ -66,7 +66,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<bool>> {
       await _service.login(rawCookies, visitorData: visitorData, dataSyncId: dataSyncId);
       _updateClientAuth();
       _ref.read(accountInfoProvider.notifier).state = const AsyncValue.data(
-          AccountInfo(name: 'YouTube User', email: 'Signed in'),
+          AccountInfo(name: 'Signed In', email: 'YouTube Music Account'),
       );
       state = const AsyncValue.data(true);
     } catch (e, st) {

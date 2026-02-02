@@ -7,14 +7,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../core/theme/everblush_colors.dart';
 import '../../../core/theme/app_decorations.dart';
 import '../../../core/extensions/duration_extensions.dart';
 import '../../../providers/audio/player_provider.dart';
+import '../../../providers/library/library_provider.dart' show likedSongsProvider, toggleLike;
 import '../../../services/audio/audio_handler.dart';
 import '../../navigation/routes.dart';
 import '../../widgets/images/cached_artwork.dart';
+import '../../widgets/dialogs/song_options_sheet.dart';
 
 /// Full-screen player with album art, progress, and controls.
 class PlayerScreen extends ConsumerWidget {
@@ -53,7 +56,7 @@ class PlayerScreen extends ConsumerWidget {
               child: Column(
                 children: [
                   // Top bar
-                  _buildTopBar(context),
+                  _buildTopBar(context, ref),
 
                   const Spacer(),
 
@@ -63,7 +66,7 @@ class PlayerScreen extends ConsumerWidget {
                   const Spacer(),
 
                   // Song info
-                  _buildSongInfo(song.title, song.artistName),
+                  _buildSongInfo(ref, song.title, song.artistName),
 
                   const SizedBox(height: 32),
 
@@ -78,7 +81,7 @@ class PlayerScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   // Bottom actions
-                  _buildBottomActions(context),
+                  _buildBottomActions(context, ref),
 
                   const SizedBox(height: 24),
                 ],
@@ -190,7 +193,7 @@ class PlayerScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTopBar(BuildContext context) {
+  Widget _buildTopBar(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
@@ -211,14 +214,19 @@ class PlayerScreen extends ConsumerWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-          IconButton(
-            onPressed: () {
-              // TODO: Show song menu
+          Builder(
+            builder: (context) {
+              final song = ref.watch(currentSongProvider).valueOrNull;
+              return IconButton(
+                onPressed: song != null
+                    ? () => SongOptionsSheet.show(context, song)
+                    : null,
+                icon: const Icon(
+                  Icons.more_vert_rounded,
+                  color: EverblushColors.textPrimary,
+                ),
+              );
             },
-            icon: const Icon(
-              Icons.more_vert_rounded,
-              color: EverblushColors.textPrimary,
-            ),
           ),
         ],
       ),
@@ -250,7 +258,7 @@ class PlayerScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSongInfo(String title, String artist) {
+  Widget _buildSongInfo(WidgetRef ref, String title, String artist) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
@@ -267,20 +275,32 @@ class PlayerScreen extends ConsumerWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
-          GestureDetector(
-            onTap: () {
-              // TODO: Navigate to artist page
+          Builder(
+            builder: (context) {
+              final song = ref.watch(currentSongProvider).valueOrNull;
+              final artistId = song?.artists.isNotEmpty == true ? song!.artists.first.id : null;
+              return GestureDetector(
+                onTap: artistId != null && artistId.isNotEmpty
+                    ? () => context.push('/artist/$artistId')
+                    : null,
+                child: Text(
+                  artist,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: artistId != null && artistId.isNotEmpty
+                        ? EverblushColors.textSecondary
+                        : EverblushColors.textMuted,
+                    decoration: artistId != null && artistId.isNotEmpty
+                        ? TextDecoration.underline
+                        : null,
+                    decorationColor: EverblushColors.textSecondary.withValues(alpha: 0.5),
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              );
             },
-            child: Text(
-              artist,
-              style: const TextStyle(
-                fontSize: 15,
-                color: EverblushColors.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
           ),
         ],
       ),
@@ -449,17 +469,27 @@ class PlayerScreen extends ConsumerWidget {
     }
   }
 
-  Widget _buildBottomActions(BuildContext context) {
+  Widget _buildBottomActions(BuildContext context, WidgetRef ref) {
+    final song = ref.watch(currentSongProvider).valueOrNull;
+    final likedSongsAsync = ref.watch(likedSongsProvider);
+    final isLiked = likedSongsAsync.maybeWhen(
+      data: (songs) => songs.any((s) => s.id == song?.id),
+      orElse: () => false,
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildActionButton(
-            icon: Icons.favorite_border_rounded,
-            label: 'Like',
-            onTap: () {
-              // TODO: Add to favorites
+            icon: isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            label: isLiked ? 'Liked' : 'Like',
+            isActive: isLiked,
+            onTap: () async {
+              if (song != null) {
+                await toggleLike(ref, song);
+              }
             },
           ),
           _buildActionButton(
@@ -476,7 +506,11 @@ class PlayerScreen extends ConsumerWidget {
             icon: Icons.share_rounded,
             label: 'Share',
             onTap: () {
-              // TODO: Share song
+              if (song != null) {
+                Share.share(
+                  'Check out "${song.title}" by ${song.artistName} on Musiqo!',
+                );
+              }
             },
           ),
         ],
@@ -488,6 +522,7 @@ class PlayerScreen extends ConsumerWidget {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    bool isActive = false,
   }) {
     return InkWell(
       onTap: onTap,
@@ -497,12 +532,16 @@ class PlayerScreen extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: EverblushColors.textSecondary, size: 24),
+            Icon(
+              icon, 
+              color: isActive ? EverblushColors.primary : EverblushColors.textSecondary, 
+              size: 24,
+            ),
             const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(
-                color: EverblushColors.textMuted,
+              style: TextStyle(
+                color: isActive ? EverblushColors.primary : EverblushColors.textMuted,
                 fontSize: 11,
               ),
             ),

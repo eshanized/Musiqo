@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/theme/everblush_colors.dart';
 import '../../../data/models/song.dart';
 import '../../../providers/download/download_provider.dart';
+import '../../../providers/queue/queue_provider.dart';
 import '../images/cached_artwork.dart';
 import 'add_to_playlist_sheet.dart';
 
@@ -108,16 +109,17 @@ class SongOptionsSheet extends ConsumerWidget {
               AddToPlaylistSheet.show(context, song);
             },
           ),
-          /*
           _optionTile(
             icon: Icons.queue_music_rounded,
             title: 'Add to queue',
             onTap: () {
               Navigator.pop(context);
-              // TODO: Add to queue logic via audio service
+              ref.read(queueProvider.notifier).addToQueue(song);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('"${song.title}" added to queue')),
+              );
             },
           ),
-          */
           _optionTile(
             icon: Icons.download_outlined,
             title: 'Download',

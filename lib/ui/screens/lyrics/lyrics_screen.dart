@@ -7,6 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../core/theme/everblush_colors.dart';
 import '../../../providers/audio/player_provider.dart';
@@ -122,7 +123,16 @@ class _LyricsScreenState extends ConsumerState<LyricsScreen> {
           ),
           IconButton(
             onPressed: () {
-              // TODO: Share lyrics
+              final song = ref.read(currentSongProvider).valueOrNull;
+              final lyricsAsync = ref.read(currentLyricsProvider);
+              lyricsAsync.whenData((lyrics) {
+                if (lyrics != null && song != null) {
+                  final lyricsText = lyrics.lines.take(8).map((l) => l.text).join('\n');
+                  Share.share(
+                    '🎵 ${song.title} by ${song.artistName}\n\n$lyricsText\n\n— via Musiqo',
+                  );
+                }
+              });
             },
             icon: const Icon(
               Icons.share_rounded,

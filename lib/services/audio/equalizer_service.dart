@@ -11,10 +11,10 @@ import '../../core/utils/logger.dart';
 
 /// Service to handle equalizer settings
 /// 
-/// Note: Real equalizer requires platform channel integration
-/// or usage of just_audio's pipeline.
-/// This is a mock/UI-state implementation for now as cross-platform EQ
-/// is complex without specific native plugins.
+/// Note: This service manages equalizer UI state and persists settings.
+/// Real audio frequency adjustment requires platform-specific native plugins
+/// (e.g., just_audio's AndroidEqualizer). The settings are stored and can be
+/// applied when such plugins are integrated.
 class EqualizerService {
   static const String _enabledKey = 'eq_enabled';
   static const String _bandsKey = 'eq_bands';

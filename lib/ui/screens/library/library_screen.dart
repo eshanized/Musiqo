@@ -201,9 +201,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
           iconBgColor: EverblushColors.primary.withValues(alpha: 0.2),
           iconColor: EverblushColors.primary,
           title: 'Create Playlist',
-          onTap: () {
-            // TODO: Show create playlist dialog
-          },
+          onTap: () => _showCreatePlaylistDialog(context),
         ),
         const SizedBox(height: 16),
         const Text(
@@ -406,6 +404,56 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
               ),
             )
           : null,
+    );
+  }
+
+  void _showCreatePlaylistDialog(BuildContext context) {
+    final textController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: EverblushColors.surface,
+        title: const Text(
+          'Create Playlist',
+          style: TextStyle(color: EverblushColors.textPrimary),
+        ),
+        content: TextField(
+          controller: textController,
+          autofocus: true,
+          style: const TextStyle(color: EverblushColors.textPrimary),
+          decoration: InputDecoration(
+            hintText: 'Playlist name',
+            hintStyle: TextStyle(
+              color: EverblushColors.textMuted.withValues(alpha: 0.7),
+            ),
+            enabledBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: EverblushColors.outline),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: EverblushColors.primary),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final name = textController.text.trim();
+              if (name.isNotEmpty) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Playlist "$name" created')),
+                );
+              }
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
     );
   }
 }

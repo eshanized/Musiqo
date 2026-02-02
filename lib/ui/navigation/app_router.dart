@@ -23,6 +23,7 @@ import '../screens/artist/artist_screen.dart';
 import '../screens/album/album_screen.dart';
 import '../screens/playlist/playlist_screen.dart';
 import '../screens/settings/settings_screen.dart';
+import '../screens/equalizer/equalizer_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/downloads/downloads_screen.dart';
 import '../widgets/core/app_scaffold.dart';
@@ -146,6 +147,15 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => _slideTransition(
               state,
               const DownloadsScreen(),
+            ),
+          ),
+          
+          GoRoute(
+            path: Routes.equalizer,
+            name: 'equalizer',
+            pageBuilder: (context, state) => _slideTransition(
+              state,
+              const EqualizerScreen(),
             ),
           ),
         ],

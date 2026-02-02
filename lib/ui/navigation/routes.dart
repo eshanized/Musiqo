@@ -42,5 +42,6 @@ class Routes {
   static const String downloadSettings = '/settings/download';
   static const String appearanceSettings = '/settings/appearance';
   static const String storageSettings = '/settings/storage';
+  static const String equalizer = '/settings/equalizer';
   static const String about = '/settings/about';
 }

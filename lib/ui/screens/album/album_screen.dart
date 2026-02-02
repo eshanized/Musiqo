@@ -7,11 +7,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../core/theme/everblush_colors.dart';
 import '../../../providers/audio/player_provider.dart';
 import '../../../providers/content/content_provider.dart';
 import '../../../providers/library/library_provider.dart';
+import '../../../providers/download/download_provider.dart';
 import '../../navigation/routes.dart';
 
 
@@ -182,15 +184,26 @@ class AlbumScreen extends ConsumerWidget {
                       color: EverblushColors.textSecondary,
                     ),
                     IconButton(
-                      onPressed: () {
-                        // TODO: Download album
-                      },
+                      onPressed: album.tracks.isNotEmpty
+                          ? () {
+                              for (final track in album.tracks) {
+                                ref.read(downloadProvider.notifier).downloadSong(track);
+                              }
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Downloading ${album.tracks.length} tracks...'),
+                                ),
+                              );
+                            }
+                          : null,
                       icon: const Icon(Icons.download_outlined),
                       color: EverblushColors.textSecondary,
                     ),
                     IconButton(
                       onPressed: () {
-                        // TODO: Share album
+                        Share.share(
+                          'Check out "${album.title}" by ${album.artistName} on Musiqo!',
+                        );
                       },
                       icon: const Icon(Icons.share_outlined),
                       color: EverblushColors.textSecondary,

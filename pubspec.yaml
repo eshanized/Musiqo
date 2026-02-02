@@ -97,6 +97,7 @@ dependencies:
   webview_flutter: ^4.10.0
   flutter_secure_storage: ^9.2.4
   file_picker: ^8.0.0
+  flutter_local_notifications: ^20.0.0
   # Note: flutter_discord_rpc removed - requires Rust/Cargokit to build
 
 dev_dependencies:
